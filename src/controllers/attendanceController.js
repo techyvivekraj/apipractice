@@ -1,5 +1,4 @@
 import Attendance from '../models/attendance/Attendance.js';
-import Employee from '../models/employee/Employee.js';
 
 class AttendanceController {
   static async getAttendanceList(req, res) {
