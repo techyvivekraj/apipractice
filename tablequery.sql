@@ -2,7 +2,7 @@
 CREATE TABLE organizations (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL,
-    domain VARCHAR(255) UNIQUE, -- Made domain optional by removing NOT NULL
+    mobile VARCHAR(255) UNIQUE, -- Made domain optional by removing NOT NULL
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

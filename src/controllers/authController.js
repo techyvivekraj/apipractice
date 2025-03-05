@@ -7,15 +7,14 @@ import jwtConfig from '../config/jwt.js';
 class AuthController {
   static async register(req, res) {
     const connection = await pool.getConnection();
-    
+
     try {
       await connection.beginTransaction();
-      
-      const { name, email, password, organizationName, organizationDomain } = req.body;
+      const { name, email,mobile, password, organizationName } = req.body;
 
-      // Check if organization exists (only if domain is provided)
-      if (organizationDomain) {
-        const existingOrg = await Organization.findByDomain(organizationDomain);
+      // Check if organization exists (only if mobile is provided)
+      if (mobile) {
+        const existingOrg = await Organization.findByMobile(mobile);
         if (existingOrg) {
           await connection.rollback();
           return res.status(409).json({
@@ -23,8 +22,8 @@ class AuthController {
             statusCode: 409,
             errors: [{
               type: 'conflict',
-              msg: 'Organization already exists with this domain.',
-              path: 'organizationDomain',
+              msg: 'Organization already exists with this mobile.',
+              path: 'email',
               location: 'body'
             }]
           });
@@ -47,10 +46,10 @@ class AuthController {
         });
       }
 
-      // Create organization with optional domain
+      // Create organization with optional mobile
       const organizationId = await Organization.create({
         name: organizationName,
-        domain: organizationDomain || null // Handle null case
+        mobile: mobile || null // Handle null case
       });
 
       // Create admin user
@@ -72,7 +71,7 @@ class AuthController {
           name,
           email,
           organizationName,
-          organizationDomain
+          mobile
         }
       });
 
@@ -144,11 +143,11 @@ class AuthController {
 
       // Generate JWT token
       const token = jwt.sign(
-        { 
+        {
           id: user.id,
           organizationId: user.organization_id,
-          role: user.role 
-        }, 
+          role: user.role
+        },
         jwtConfig.secret,
         { expiresIn: jwtConfig.expiresIn }
       );

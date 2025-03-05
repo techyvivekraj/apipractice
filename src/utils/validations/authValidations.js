@@ -20,11 +20,12 @@ const validationRules = {
       .trim()
       .isLength({ min: 2 }).withMessage('Organization name must be at least 2 characters'),
     
-    body('organizationDomain')
+      body('mobile')
       .optional()
       .trim()
-      .matches(/^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$/)
-      .withMessage('If provided, domain must be in valid format')
+      .matches(/^\+?[1-9]\d{1,14}$/)
+      .withMessage('If provided, mobile number must be in a valid format')
+    
   ],
   
   login: [
