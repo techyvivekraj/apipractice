@@ -6,8 +6,8 @@ class Employee {
       `SELECT e.*, 
         d.name as department_name, 
         des.name as designation_name,
-        rm.name as reporting_manager_name,
-        pm.name as project_manager_name
+        rm.first_name as reporting_manager_name,
+        pm.first_name as project_manager_name
        FROM employees e
        LEFT JOIN departments d ON e.department_id = d.id
        LEFT JOIN designations des ON e.designation_id = des.id

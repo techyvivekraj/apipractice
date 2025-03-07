@@ -14,115 +14,115 @@ router.get('setup/status',
 );
 
 // Department routes
-router.get('departments', 
+router.get('/departments', 
   authMiddleware, 
   SetupController.getDepartments
 );
 
-router.get('departments/:id', 
+router.get('/departments/:id', 
   authMiddleware, 
   validate(validationRules.deleteItem), // reusing ID validation
   SetupController.getDepartmentById
 );
 
-router.post('departments', 
+router.post('/departments', 
   authMiddleware, 
   validate(validationRules.createDepartment), 
   SetupController.createDepartment
 );
 
-router.put('departments/:id', 
+router.put('/departments/:id', 
   authMiddleware, 
   validate(validationRules.updateDepartment), 
   SetupController.updateDepartment
 );
 
-router.delete('departments/:id', 
+router.delete('/departments/:id', 
   authMiddleware, 
   validate(validationRules.deleteItem), 
   SetupController.deleteDepartment
 );
 
 // Designation routes
-router.get('designations', 
+router.get('/roles', 
   authMiddleware, 
   SetupController.getDesignations
 );
 
-router.get('designations/:id', 
+router.get('/roles/:id', 
   authMiddleware, 
   validate(validationRules.deleteItem),
   SetupController.getDesignationById
 );
 
-router.get('departments/:departmentId/designations', 
+router.get('/departments/:departmentId/roles', 
   authMiddleware, 
   validate(validationRules.deleteItem),
   SetupController.getDesignationsByDepartment
 );
 
-router.post('designations', 
+router.post('/roles', 
   authMiddleware, 
   validate(validationRules.createDesignation), 
   SetupController.createDesignation
 );
 
-router.put('designations/:id', 
+router.put('/roles/:id', 
   authMiddleware, 
   validate(validationRules.updateDesignation), 
   SetupController.updateDesignation
 );
 
-router.delete('designations/:id', 
+router.delete('/roles/:id', 
   authMiddleware, 
   validate(validationRules.deleteItem), 
   SetupController.deleteDesignation
 );
 
 // Shift routes
-router.get('shifts', 
+router.get('/shifts', 
   authMiddleware, 
   SetupController.getShifts
 );
 
-router.get('shifts/:id', 
+router.get('/shifts/:id', 
   authMiddleware, 
   validate(validationRules.deleteItem),
   SetupController.getShiftById
 );
 
-router.post('shifts', 
+router.post('/shifts', 
   authMiddleware, 
   validate(validationRules.createShift), 
   SetupController.createShift
 );
 
-router.put('shifts/:id', 
+router.put('/shifts/:id', 
   authMiddleware, 
   validate(validationRules.updateShift), 
   SetupController.updateShift
 );
 
-router.delete('shifts/:id', 
+router.delete('/shifts/:id', 
   authMiddleware, 
   validate(validationRules.deleteItem), 
   SetupController.deleteShift
 );
 
 // Shift Assignment routes
-router.get('shifts/assignments/:employeeId', 
+router.get('/shifts/assignments/:employeeId', 
   authMiddleware, 
   validate(validationRules.deleteItem),
   SetupController.getEmployeeShifts
 );
 
-router.post('shifts/assign', 
+router.post('/shifts/assign', 
   authMiddleware, 
   validate(validationRules.assignShift), 
   SetupController.assignShift
 );
 
-router.delete('shifts/assignments/:id', 
+router.delete('/shifts/assignments/:id', 
   authMiddleware, 
   validate(validationRules.deleteItem),
   SetupController.removeShiftAssignment
@@ -156,6 +156,42 @@ router.delete('/holidays/:id',
   authMiddleware,
   validate(validationRules.deleteItem),
   SetupController.deleteHoliday
+);
+
+// Asset routes
+router.get('/assets', 
+  authMiddleware, 
+  SetupController.getAssets
+);
+
+router.get('/assets/:id', 
+  authMiddleware,
+  validate(validationRules.deleteItem),
+  SetupController.getAssetById
+);
+
+router.get('/employees/:employeeId/assets', 
+  authMiddleware,
+  validate(validationRules.deleteItem),
+  SetupController.getEmployeeAssets
+);
+
+router.post('/assets',
+  authMiddleware,
+  validate(validationRules.assetValidations.createAsset),
+  SetupController.createAsset
+);
+
+router.put('/assets/:id',
+  authMiddleware,
+  validate(validationRules.assetValidations.updateAsset),
+  SetupController.updateAsset
+);
+
+router.delete('/assets/:id',
+  authMiddleware,
+  validate(validationRules.deleteItem),
+  SetupController.deleteAsset
 );
 
 export default router; 

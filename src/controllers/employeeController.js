@@ -3,7 +3,9 @@ import Employee from '../models/employee/Employee.js';
 class EmployeeController {
   static async getEmployees(req, res) {
     try {
-      const employees = await Employee.findByOrganization(req.user.organizationId);
+      
+      const {organizationId } = req.body;
+      const employees = await Employee.findByOrganization(organizationId);
       return res.status(200).json({
         success: true,
         statusCode: 200,

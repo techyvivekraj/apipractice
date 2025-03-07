@@ -15,7 +15,7 @@ const app = express();
 app.use(helmet());
 app.use(compression());
 app.use(cors({
-  origin: '*',
+  origin: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));

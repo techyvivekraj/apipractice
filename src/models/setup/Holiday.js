@@ -1,3 +1,4 @@
+import pool from '../../config/db.js';
 class Holiday {
 
   static async getHolidays(organizationId) {

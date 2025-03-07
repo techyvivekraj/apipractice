@@ -243,4 +243,71 @@ const validationRules = {
   },
 };
 
-export default validationRules;
+const assetValidations = {
+  createAsset: [
+    body('assetName')
+      .trim()
+      .notEmpty()
+      .withMessage('Asset name is required')
+      .isLength({ max: 255 })
+      .withMessage('Asset name must be less than 255 characters'),
+    body('assignedTo')
+      .optional()
+      .isInt()
+      .withMessage('Invalid employee ID'),
+    body('purchaseDate')
+      .notEmpty()
+      .withMessage('Purchase date is required')
+      .isISO8601()
+      .withMessage('Invalid date format'),
+    body('condition')
+      .optional()
+      .isIn(['new', 'used', 'damaged'])
+      .withMessage('Invalid condition value'),
+    body('status')
+      .optional()
+      .isIn(['active', 'returned', 'lost'])
+      .withMessage('Invalid status value'),
+    body('organizationId')
+      .notEmpty()
+      .withMessage('Organization ID is required')
+      .isInt()
+      .withMessage('Invalid organization ID')
+  ],
+  updateAsset: [
+    param('id')
+      .isInt()
+      .withMessage('Invalid asset ID'),
+    body('assetName')
+      .optional()
+      .trim()
+      .isLength({ max: 255 })
+      .withMessage('Asset name must be less than 255 characters'),
+    body('assignedTo')
+      .optional()
+      .isInt()
+      .withMessage('Invalid employee ID'),
+    body('purchaseDate')
+      .optional()
+      .isISO8601()
+      .withMessage('Invalid date format'),
+    body('condition')
+      .optional()
+      .isIn(['new', 'used', 'damaged'])
+      .withMessage('Invalid condition value'),
+    body('status')
+      .optional()
+      .isIn(['active', 'returned', 'lost'])
+      .withMessage('Invalid status value'),
+    body('organizationId')
+      .notEmpty()
+      .withMessage('Organization ID is required')
+      .isInt()
+      .withMessage('Invalid organization ID')
+  ]
+};
+
+export default {
+  ...validationRules,
+  assetValidations
+};

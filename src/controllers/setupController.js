@@ -3,11 +3,12 @@ import Department from '../models/setup/Department.js';
 import Designation from '../models/setup/Designation.js';
 import Shift from '../models/setup/Shift.js';
 import Holiday from '../models/setup/Holiday.js';
+import Asset from '../models/setup/Asset.js';
 
 class SetupController {
   static async checkSetupStatus(req, res) {
     try {
-      const { organizationId} = req.body;
+      const { organizationId } = req.body;
 
       const setupStatus = await Setup.getSetupStatus(organizationId);
 
@@ -17,29 +18,29 @@ class SetupController {
           departments: {
             status: setupStatus.departments.isComplete,
             count: setupStatus.departments.count,
-            message: setupStatus.departments.isComplete 
-              ? 'Departments have been set up' 
+            message: setupStatus.departments.isComplete
+              ? 'Departments have been set up'
               : 'No departments added yet'
           },
           designations: {
             status: setupStatus.designations.isComplete,
             count: setupStatus.designations.count,
-            message: setupStatus.designations.isComplete 
-              ? 'Designations have been set up' 
+            message: setupStatus.designations.isComplete
+              ? 'Designations have been set up'
               : 'No designations added yet'
           },
           shifts: {
             status: setupStatus.shifts.isComplete,
             count: setupStatus.shifts.count,
-            message: setupStatus.shifts.isComplete 
-              ? 'Work shifts have been set up' 
+            message: setupStatus.shifts.isComplete
+              ? 'Work shifts have been set up'
               : 'No work shifts defined yet'
           },
           keyUsers: {
             status: setupStatus.keyUsers.isComplete,
             count: setupStatus.keyUsers.count,
-            message: setupStatus.keyUsers.isComplete 
-              ? 'Key users (HR/Managers) have been added' 
+            message: setupStatus.keyUsers.isComplete
+              ? 'Key users (HR/Managers) have been added'
               : 'No HR or managers added yet'
           }
         },
@@ -65,15 +66,15 @@ class SetupController {
       return res.status(200).json({
         success: true,
         statusCode: 200,
-        message: formattedStatus.isComplete 
-          ? 'Organization setup is complete' 
+        message: formattedStatus.isComplete
+          ? 'Organization setup is complete'
           : 'Organization setup is incomplete',
         data: formattedStatus
       });
 
     } catch (error) {
       console.error('Setup status check error:', error);
-      
+
       if (error.message === 'Organization not found') {
         return res.status(404).json({
           success: false,
@@ -102,7 +103,7 @@ class SetupController {
 
   static async getDepartments(req, res) {
     try {
-      const { organizationId} = req.body;
+      const { organizationId } = req.body;
       const departments = await Department.findByOrganization(organizationId);
       return res.status(200).json({
         success: true,
@@ -127,8 +128,8 @@ class SetupController {
   static async getDepartmentById(req, res) {
     try {
 
-      const { organizationId,id} = req.body;
-      const department = await Department.findById({organizationId,id});
+      const { organizationId, id } = req.body;
+      const department = await Department.findById({ organizationId, id });
       if (!department) {
         return res.status(404).json({
           success: false,
@@ -163,10 +164,10 @@ class SetupController {
 
   static async createDepartment(req, res) {
     try {
-      const { name,organizationId } = req.body;
-      
+      const { name, organizationId } = req.body;
+
       const departmentId = await Department.create({ name, organizationId });
-      
+
       return res.status(201).json({
         success: true,
         statusCode: 201,
@@ -317,7 +318,8 @@ class SetupController {
 
   static async getDesignations(req, res) {
     try {
-      const designations = await Designation.findByOrganization(req.user.organizationId);
+      const { organizationId } = req.body;
+      const designations = await Designation.findByOrganization(organizationId);
       return res.status(200).json({
         success: true,
         statusCode: 200,
@@ -340,7 +342,8 @@ class SetupController {
 
   static async getDesignationById(req, res) {
     try {
-      const designation = await Designation.findByIdWithDepartment(req.params.id, req.user.organizationId);
+      const { organizationId } = req.body;
+      const designation = await Designation.findByIdWithDepartment(req.params.id, organizationId);
       if (!designation) {
         return res.status(404).json({
           success: false,
@@ -377,8 +380,9 @@ class SetupController {
   static async getDesignationsByDepartment(req, res) {
     try {
       const { departmentId } = req.params;
-      const designations = await Designation.findByDepartment(departmentId, req.user.organizationId);
-      
+      const { organizationId } = req.body;
+      const designations = await Designation.findByDepartment(departmentId, organizationId);
+
       return res.status(200).json({
         success: true,
         statusCode: 200,
@@ -401,24 +405,23 @@ class SetupController {
 
   static async createDesignation(req, res) {
     try {
-      const { name, departmentId } = req.body;
-      const organizationId = req.user.organizationId;
+      const { name, departmentId, organizationId } = req.body;
 
-      const designationId = await Designation.create({ 
-        name, 
-        organizationId, 
-        departmentId 
+      const designationId = await Designation.create({
+        name,
+        organizationId,
+        departmentId
       });
 
       return res.status(201).json({
         success: true,
         statusCode: 201,
         message: 'Designation created successfully',
-        data: { 
-          id: designationId, 
-          name, 
-          organizationId, 
-          departmentId 
+        data: {
+          id: designationId,
+          name,
+          organizationId,
+          departmentId
         }
       });
     } catch (error) {
@@ -438,9 +441,9 @@ class SetupController {
 
   static async updateDesignation(req, res) {
     try {
-      const { name, departmentId,organizationId } = req.body;
+      const { name, departmentId, organizationId } = req.body;
 
-      const updated = await Designation.update({ 
+      const updated = await Designation.update({
         name: name,
         departmentId: departmentId,
         organizationId: organizationId
@@ -454,11 +457,11 @@ class SetupController {
         success: true,
         statusCode: 200,
         message: 'Designation updated successfully',
-        data: { 
-          id, 
-          name: name ,
+        data: {
+          id,
+          name: name,
           departmentId: departmentId,
-          organizationId 
+          organizationId
         }
       });
     } catch (error) {
@@ -478,9 +481,9 @@ class SetupController {
 
   static async deleteDesignation(req, res) {
     try {
-      const { id ,organizationId} = req.body;
+      const { id, organizationId } = req.body;
 
-      const deleted = await Designation.delete({id,organizationId});
+      const deleted = await Designation.delete({ id, organizationId });
       if (!deleted) {
         throw new Error('Failed to delete designation');
       }
@@ -507,7 +510,8 @@ class SetupController {
 
   static async getShifts(req, res) {
     try {
-      const shifts = await Shift.findAll(req.user.organizationId);
+      const { organizationId } = req.body;
+      const shifts = await Shift.findAll(organizationId);
       return res.status(200).json({
         success: true,
         statusCode: 200,
@@ -530,7 +534,8 @@ class SetupController {
 
   static async getShiftById(req, res) {
     try {
-      const shift = await Shift.findById(req.params.id, req.user.organizationId);
+      const { organizationId } = req.body;
+      const shift = await Shift.findById(req.params.id, organizationId);
       if (!shift) {
         return res.status(404).json({
           success: false,
@@ -565,18 +570,18 @@ class SetupController {
 
   static async createShift(req, res) {
     try {
-      const { name, startTime, endTime, workingDays } = req.body;
-      
-      const shiftId = await Shift.create({ 
-        name, 
-        startTime, 
-        endTime, 
+      const { name, startTime, endTime, workingDays, organizationId } = req.body;
+
+      const shiftId = await Shift.create({
+        name,
+        startTime,
+        endTime,
         workingDays,
-        organizationId: req.user.organizationId 
+        organizationId: organizationId
       });
-      
-      const shift = await Shift.findById(shiftId, req.user.organizationId);
-      
+
+      const shift = await Shift.findById(shiftId, organizationId);
+
       return res.status(201).json({
         success: true,
         statusCode: 201,
@@ -601,9 +606,9 @@ class SetupController {
   static async updateShift(req, res) {
     try {
       const { id } = req.params;
-      const { name, startTime, endTime, workingDays } = req.body;
+      const { name, startTime, endTime, workingDays, organizationId } = req.body;
 
-      const shift = await Shift.findById(id, req.user.organizationId);
+      const shift = await Shift.findById(id, organizationId);
       if (!shift) {
         return res.status(404).json({
           success: false,
@@ -622,14 +627,14 @@ class SetupController {
         startTime: startTime || shift.start_time,
         endTime: endTime || shift.end_time,
         workingDays: workingDays || shift.working_days,
-        organizationId: req.user.organizationId
+        organizationId: organizationId
       });
 
       if (!updated) {
         throw new Error('Failed to update shift');
       }
 
-      const updatedShift = await Shift.findById(id, req.user.organizationId);
+      const updatedShift = await Shift.findById(id, organizationId);
 
       return res.status(200).json({
         success: true,
@@ -655,8 +660,9 @@ class SetupController {
   static async deleteShift(req, res) {
     try {
       const { id } = req.params;
-      
-      const shift = await Shift.findById(id, req.user.organizationId);
+      const { organizationId } = req.body;
+
+      const shift = await Shift.findById(id, organizationId);
       if (!shift) {
         return res.status(404).json({
           success: false,
@@ -670,7 +676,7 @@ class SetupController {
         });
       }
 
-      const deleted = await Shift.delete(id, req.user.organizationId);
+      const deleted = await Shift.delete(id, organizationId);
       if (!deleted) {
         throw new Error('Failed to delete shift');
       }
@@ -698,7 +704,8 @@ class SetupController {
   static async getEmployeeShifts(req, res) {
     try {
       const { employeeId } = req.params;
-      const shifts = await Shift.getEmployeeShifts(employeeId, req.user.organizationId);
+      const { organizationId } = req.body;
+      const shifts = await Shift.getEmployeeShifts(employeeId, organizationId);
 
       return res.status(200).json({
         success: true,
@@ -722,9 +729,9 @@ class SetupController {
 
   static async assignShift(req, res) {
     try {
-      const { employeeId, shiftId, startDate, endDate } = req.body;
+      const { employeeId, shiftId, startDate, endDate, organizationId } = req.body;
 
-      const employeeExists = await Shift.verifyEmployeeExists(employeeId, req.user.organizationId);
+      const employeeExists = await Shift.verifyEmployeeExists(employeeId, organizationId);
       if (!employeeExists) {
         return res.status(404).json({
           success: false,
@@ -739,7 +746,7 @@ class SetupController {
       }
 
       // Verify shift exists
-      const shift = await Shift.findById(shiftId, req.user.organizationId);
+      const shift = await Shift.findById(shiftId, organizationId);
       if (!shift) {
         return res.status(404).json({
           success: false,
@@ -754,11 +761,11 @@ class SetupController {
       }
 
       const assignmentId = await Shift.assignToEmployee(
-        employeeId, 
-        shiftId, 
-        startDate, 
+        employeeId,
+        shiftId,
+        startDate,
         endDate,
-        req.user.organizationId
+        organizationId
       );
 
       return res.status(201).json({
@@ -791,7 +798,7 @@ class SetupController {
   static async removeShiftAssignment(req, res) {
     try {
       const { id } = req.params;
-      const organizationId = req.user.organizationId;
+      const { organizationId } = req.body;
 
       const removed = await Shift.removeAssignment(id, organizationId);
       if (!removed) {
@@ -829,7 +836,8 @@ class SetupController {
 
   static async getHolidays(req, res) {
     try {
-      const holidays = await Setup.getHolidays(req.user.organizationId);
+      const { organizationId } = req.body;
+      const holidays = await Holiday.getHolidays(organizationId);
       return res.status(200).json({
         success: true,
         statusCode: 200,
@@ -852,7 +860,8 @@ class SetupController {
 
   static async getHolidayById(req, res) {
     try {
-      const holiday = await Holiday.getHolidayById(req.params.id, req.user.organizationId);
+      const { organizationId } = req.body;
+      const holiday = await Holiday.getHolidayById(req.params.id, organizationId);
       if (!holiday) {
         return res.status(404).json({
           success: false,
@@ -887,10 +896,10 @@ class SetupController {
 
   static async createHoliday(req, res) {
     try {
-      const { name, description, date, type, status } = req.body;
-      
+      const { name, description, date, type, status, organizationId } = req.body;
+
       const holidayId = await Holiday.createHoliday({
-        organizationId: req.user.organizationId,
+        organizationId: organizationId,
         name,
         description,
         date,
@@ -898,7 +907,7 @@ class SetupController {
         status
       });
 
-      const holiday = await Holiday.getHolidayById(holidayId, req.user.organizationId);
+      const holiday = await Holiday.getHolidayById(holidayId, organizationId);
 
       return res.status(201).json({
         success: true,
@@ -936,9 +945,9 @@ class SetupController {
   static async updateHoliday(req, res) {
     try {
       const { id } = req.params;
-      const { name, description, date, type, status } = req.body;
+      const { name, description, date, type, status, organizationId } = req.body;
 
-      const holiday = await Holiday.getHolidayById(id, req.user.organizationId);
+      const holiday = await Holiday.getHolidayById(id, organizationId);
       if (!holiday) {
         return res.status(404).json({
           success: false,
@@ -958,14 +967,14 @@ class SetupController {
         date: date || holiday.date,
         type: type || holiday.type,
         status: status || holiday.status,
-        organizationId: req.user.organizationId
+        organizationId: organizationId
       });
 
       if (!updated) {
         throw new Error('Failed to update holiday');
       }
 
-      const updatedHoliday = await Holiday.getHolidayById(id, req.user.organizationId);
+      const updatedHoliday = await Holiday.getHolidayById(id, organizationId);
 
       return res.status(200).json({
         success: true,
@@ -1003,8 +1012,9 @@ class SetupController {
   static async deleteHoliday(req, res) {
     try {
       const { id } = req.params;
-      
-      const holiday = await Holiday.getHolidayById(id, req.user.organizationId);
+      const { organizationId } = req.body;
+
+      const holiday = await Holiday.getHolidayById(id, organizationId);
       if (!holiday) {
         return res.status(404).json({
           success: false,
@@ -1018,7 +1028,7 @@ class SetupController {
         });
       }
 
-      const deleted = await Holiday.deleteHoliday(id, req.user.organizationId);
+      const deleted = await Holiday.deleteHoliday(id, organizationId);
       if (!deleted) {
         throw new Error('Failed to delete holiday');
       }
@@ -1036,6 +1046,229 @@ class SetupController {
         errors: [{
           type: 'server',
           msg: 'Failed to delete holiday',
+          path: 'server',
+          location: 'internal'
+        }]
+      });
+    }
+  }
+
+  static async getAssets(req, res) {
+    try {
+      const { organizationId } = req.body;
+      const assets = await Asset.findAll(organizationId);
+      return res.status(200).json({
+        success: true,
+        statusCode: 200,
+        data: assets
+      });
+    } catch (error) {
+      console.error('Get assets error:', error);
+      return res.status(500).json({
+        success: false,
+        statusCode: 500,
+        errors: [{
+          type: 'server',
+          msg: 'Failed to fetch assets',
+          path: 'server',
+          location: 'internal'
+        }]
+      });
+    }
+  }
+
+  static async getAssetById(req, res) {
+    try {
+      const { organizationId } = req.body;
+      const asset = await Asset.findById(req.params.id, organizationId);
+      if (!asset) {
+        return res.status(404).json({
+          success: false,
+          statusCode: 404,
+          errors: [{
+            type: 'notFound',
+            msg: 'Asset not found',
+            path: 'id',
+            location: 'params'
+          }]
+        });
+      }
+      return res.status(200).json({
+        success: true,
+        statusCode: 200,
+        data: asset
+      });
+    } catch (error) {
+      console.error('Get asset error:', error);
+      return res.status(500).json({
+        success: false,
+        statusCode: 500,
+        errors: [{
+          type: 'server',
+          msg: 'Failed to fetch asset',
+          path: 'server',
+          location: 'internal'
+        }]
+      });
+    }
+  }
+
+  static async createAsset(req, res) {
+    try {
+      const { assetName, assignedTo, purchaseDate, condition, status, organizationId } = req.body;
+
+      const assetId = await Asset.create({
+        assetName,
+        assignedTo,
+        purchaseDate,
+        condition,
+        status,
+        organizationId: organizationId
+      });
+
+      const asset = await Asset.findById(assetId, organizationId);
+
+      return res.status(201).json({
+        success: true,
+        statusCode: 201,
+        message: 'Asset created successfully',
+        data: asset
+      });
+    } catch (error) {
+      console.error('Create asset error:', error);
+      return res.status(500).json({
+        success: false,
+        statusCode: 500,
+        errors: [{
+          type: 'server',
+          msg: 'Failed to create asset',
+          path: 'server',
+          location: 'internal'
+        }]
+      });
+    }
+  }
+
+  static async updateAsset(req, res) {
+    try {
+      const { id } = req.params;
+      const { assetName, assignedTo, purchaseDate, condition, status, organizationId } = req.body;
+
+      const asset = await Asset.findById(id, organizationId);
+      if (!asset) {
+        return res.status(404).json({
+          success: false,
+          statusCode: 404,
+          errors: [{
+            type: 'notFound',
+            msg: 'Asset not found',
+            path: 'id',
+            location: 'params'
+          }]
+        });
+      }
+
+      const updated = await Asset.update(id, {
+        assetName: assetName || asset.asset_name,
+        assignedTo: assignedTo || asset.assigned_to,
+        purchaseDate: purchaseDate || asset.purchase_date,
+        condition: condition || asset.conditionn,
+        status: status || asset.status,
+        organizationId: organizationId
+      });
+
+      if (!updated) {
+        throw new Error('Failed to update asset');
+      }
+
+      const updatedAsset = await Asset.findById(id, organizationId);
+
+      return res.status(200).json({
+        success: true,
+        statusCode: 200,
+        message: 'Asset updated successfully',
+        data: updatedAsset
+      });
+    } catch (error) {
+      console.error('Update asset error:', error);
+      return res.status(500).json({
+        success: false,
+        statusCode: 500,
+        errors: [{
+          type: 'server',
+          msg: 'Failed to update asset',
+          path: 'server',
+          location: 'internal'
+        }]
+      });
+    }
+  }
+
+  static async deleteAsset(req, res) {
+    try {
+      const { id } = req.params;
+
+      const { organizationId } = req.body;
+
+      const asset = await Asset.findById(id, organizationId);
+      if (!asset) {
+        return res.status(404).json({
+          success: false,
+          statusCode: 404,
+          errors: [{
+            type: 'notFound',
+            msg: 'Asset not found',
+            path: 'id',
+            location: 'params'
+          }]
+        });
+      }
+
+      const deleted = await Asset.delete(id, organizationId);
+      if (!deleted) {
+        throw new Error('Failed to delete asset');
+      }
+
+      return res.status(200).json({
+        success: true,
+        statusCode: 200,
+        message: 'Asset deleted successfully'
+      });
+    } catch (error) {
+      console.error('Delete asset error:', error);
+      return res.status(500).json({
+        success: false,
+        statusCode: 500,
+        errors: [{
+          type: 'server',
+          msg: 'Failed to delete asset',
+          path: 'server',
+          location: 'internal'
+        }]
+      });
+    }
+  }
+
+  static async getEmployeeAssets(req, res) {
+    try {
+      const { employeeId } = req.params;
+
+      const { organizationId } = req.body;
+      const assets = await Asset.getEmployeeAssets(employeeId, organizationId);
+
+      return res.status(200).json({
+        success: true,
+        statusCode: 200,
+        data: assets
+      });
+    } catch (error) {
+      console.error('Get employee assets error:', error);
+      return res.status(500).json({
+        success: false,
+        statusCode: 500,
+        errors: [{
+          type: 'server',
+          msg: 'Failed to fetch employee assets',
           path: 'server',
           location: 'internal'
         }]

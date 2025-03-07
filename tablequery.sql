@@ -24,6 +24,12 @@ CREATE TABLE departments (
     id INT PRIMARY KEY AUTO_INCREMENT,
     organization_id INT NOT NULL,
     name VARCHAR(100) UNIQUE NOT NULL,
+    noticePeriod INT DEFAULT 0,
+    casualLeave INT DEFAULT 0,
+    sickLeave INT DEFAULT 0,
+    earnedLeave INT DEFAULT 0,
+    maternityLeave INT DEFAULT 0,
+    paternityLeave INT DEFAULT 0,
     FOREIGN KEY (organization_id) REFERENCES organizations(id)
 );
 
