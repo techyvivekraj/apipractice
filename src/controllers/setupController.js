@@ -354,7 +354,7 @@ class SetupController {
 
   static async getDesignations(req, res) {
     try {
-      const { organizationId } = req.body;
+      const { organizationId } = req.query;
       const designations = await Designation.findByOrganization(organizationId);
       return res.status(200).json({
         success: true,
@@ -546,7 +546,7 @@ class SetupController {
 
   static async getShifts(req, res) {
     try {
-      const { organizationId } = req.body;
+      const { organizationId } = req.query;
       const shifts = await Shift.findAll(organizationId);
       return res.status(200).json({
         success: true,
@@ -1091,7 +1091,7 @@ class SetupController {
 
   static async getAssets(req, res) {
     try {
-      const { organizationId } = req.body;
+      const { organizationId } = req.query;
       const assets = await Asset.findAll(organizationId);
       return res.status(200).json({
         success: true,
@@ -1162,13 +1162,11 @@ class SetupController {
         organizationId: organizationId
       });
 
-      const asset = await Asset.findById(assetId, organizationId);
-
       return res.status(201).json({
         success: true,
         statusCode: 201,
         message: 'Asset created successfully',
-        data: asset
+        data: { id: assetId }
       });
     } catch (error) {
       console.error('Create asset error:', error);

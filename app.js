@@ -21,11 +21,11 @@ app.use(cors({
 }));
 
 // Rate Limiting
-const limiter = rateLimit({
-  windowMs: process.env.RATE_LIMIT_WINDOW * 60 * 1000,
-  max: process.env.RATE_LIMIT_MAX,
-});
-app.use(limiter);
+// const limiter = rateLimit({
+//   windowMs: process.env.RATE_LIMIT_WINDOW * 60 * 1000,
+//   max: process.env.RATE_LIMIT_MAX,
+// });
+// app.use(limiter);
 
 // Body Parsing
 app.use(express.json({ limit: '10kb' }));

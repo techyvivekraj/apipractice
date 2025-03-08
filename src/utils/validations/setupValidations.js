@@ -1,4 +1,5 @@
 import { body, param, query } from 'express-validator';
+import pool from '../../config/db.js';
 
 const validationRules = {
   // Department Validations
@@ -20,9 +21,9 @@ const validationRules = {
       .matches(/^[a-zA-Z0-9\s-_&]+$/).withMessage('Department name can only contain letters, numbers, spaces, and -_&'),
   ],
 
-  deleteDepartment: [
+  deleteItem: [
     param('id')
-      .isInt().withMessage('Invalid department ID'),
+      .isInt().withMessage('Invalid ID'),
   ],
 
   // Designation Validations
@@ -36,15 +37,22 @@ const validationRules = {
       .notEmpty().withMessage('Department ID is required')
       .isInt().withMessage('Invalid department ID')
       .custom(async (value, { req }) => {
-        const [department] = await pool.query(
-          'SELECT id FROM departments WHERE id = ? AND organization_id = ?',
-          [value, req.user.organizationId]
-        );
-        if (!department.length) {
-          throw new Error('Department not found in your organization');
+        try {
+          const [rows] = await pool.query(
+            'SELECT id FROM departments WHERE id = ? AND organization_id = ?',
+            [value, req.body.organizationId]
+          );
+          if (!rows.length) {
+            throw new Error('Department not found in your organization');
+          }
+          return true;
+        } catch (error) {
+          throw new Error('Error validating department');
         }
-        return true;
       }),
+    body('organizationId')
+      .notEmpty().withMessage('Organization ID is required')
+      .isInt().withMessage('Invalid organization ID')
   ],
 
   updateDesignation: [
@@ -58,6 +66,9 @@ const validationRules = {
     body('departmentId')
       .optional()
       .isInt().withMessage('Invalid department ID'),
+    body('organizationId')
+      .notEmpty().withMessage('Organization ID is required')
+      .isInt().withMessage('Invalid organization ID')
   ],
 
   deleteDesignation: [
@@ -181,12 +192,6 @@ const validationRules = {
     body('organizationId')
       .notEmpty().withMessage('Organization ID is required')
       .isInt().withMessage('Invalid organization ID')
-      .custom((value, { req }) => {
-        if (parseInt(value) !== req.user.organizationId) {
-          throw new Error('Organization ID mismatch with authenticated user');
-        }
-        return true;
-      }),
   ],
 
   holidayValidations: {
@@ -252,16 +257,22 @@ const assetValidations = {
       .isLength({ max: 255 })
       .withMessage('Asset name must be less than 255 characters'),
     body('assignedTo')
-      .optional()
-      .isInt()
-      .withMessage('Invalid employee ID'),
+      .optional({ nullable: true })
+      .custom((value) => {
+        if (value === null || value === '') return true;
+        if (!Number.isInteger(Number(value))) {
+          throw new Error('Employee ID must be a number');
+        }
+        return true;
+      }),
     body('purchaseDate')
       .notEmpty()
       .withMessage('Purchase date is required')
       .isISO8601()
       .withMessage('Invalid date format'),
     body('condition')
-      .optional()
+      .notEmpty()
+      .withMessage('Condition is required')
       .isIn(['new', 'used', 'damaged'])
       .withMessage('Invalid condition value'),
     body('status')
@@ -284,9 +295,14 @@ const assetValidations = {
       .isLength({ max: 255 })
       .withMessage('Asset name must be less than 255 characters'),
     body('assignedTo')
-      .optional()
-      .isInt()
-      .withMessage('Invalid employee ID'),
+      .optional({ nullable: true })
+      .custom((value) => {
+        if (value === null || value === '') return true;
+        if (!Number.isInteger(Number(value))) {
+          throw new Error('Employee ID must be a number');
+        }
+        return true;
+      }),
     body('purchaseDate')
       .optional()
       .isISO8601()
