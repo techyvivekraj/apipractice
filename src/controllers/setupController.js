@@ -103,7 +103,7 @@ class SetupController {
 
   static async getDepartments(req, res) {
     try {
-      const { organizationId } = req.body;
+      const { organizationId } = req.query;
       const departments = await Department.findByOrganization(organizationId);
       return res.status(200).json({
         success: true,
@@ -164,9 +164,27 @@ class SetupController {
 
   static async createDepartment(req, res) {
     try {
-      const { name, organizationId } = req.body;
+      const { 
+        name, 
+        organizationId,
+        noticePeriod,
+        casualLeave,
+        sickLeave,
+        earnedLeave,
+        maternityLeave,
+        paternityLeave
+      } = req.body;
 
-      const departmentId = await Department.create({ name, organizationId });
+      const departmentId = await Department.create({ 
+        name, 
+        organizationId,
+        noticePeriod,
+        casualLeave,
+        sickLeave,
+        earnedLeave,
+        maternityLeave,
+        paternityLeave
+      });
 
       return res.status(201).json({
         success: true,
@@ -204,7 +222,16 @@ class SetupController {
   static async updateDepartment(req, res) {
     try {
       const { id } = req.params;
-      const { name, organizationId } = req.body;
+      const { 
+        name, 
+        organizationId,
+        noticePeriod,
+        casualLeave,
+        sickLeave,
+        earnedLeave,
+        maternityLeave,
+        paternityLeave
+      } = req.body;
 
       const department = await Department.findByIdAndOrganization(id, organizationId);
       if (!department) {
@@ -220,7 +247,16 @@ class SetupController {
         });
       }
 
-      const updated = await Department.update(id, { name });
+      const updated = await Department.update(id, { 
+        name,
+        organizationId,
+        noticePeriod: noticePeriod || department.noticePeriod,
+        casualLeave: casualLeave || department.casualLeave,
+        sickLeave: sickLeave || department.sickLeave,
+        earnedLeave: earnedLeave || department.earnedLeave,
+        maternityLeave: maternityLeave || department.maternityLeave,
+        paternityLeave: paternityLeave || department.paternityLeave
+      });
 
       if (!updated) {
         throw new Error('Failed to update department');

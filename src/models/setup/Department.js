@@ -8,20 +8,29 @@ class Department {
     );
     return rows;
   }
-  static async findById({organizationId,id}) {
-    const [rows] = await pool.query(
-      'SELECT * FROM departments WHERE organization_id = ? and id = ?',
-      [organizationId,id]
-    );
-    return rows;
-  }
-  
 
-  static async create({ name, organizationId }) {
+  static async findById({organizationId, id}) {
+    const [rows] = await pool.query(
+      'SELECT * FROM departments WHERE organization_id = ? AND id = ?',
+      [organizationId, id]
+    );
+    return rows[0];
+  }
+
+  static async create({ name, organizationId, noticePeriod, casualLeave, sickLeave, earnedLeave, maternityLeave, paternityLeave }) {
     try {
       const [result] = await pool.query(
-        'INSERT INTO departments (name, organization_id) VALUES (?, ?)',
-        [name, organizationId]
+        `INSERT INTO departments (
+          name, 
+          organization_id, 
+          noticePeriod,
+          casualLeave,
+          sickLeave,
+          earnedLeave,
+          maternityLeave,
+          paternityLeave
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [name, organizationId, noticePeriod || 0, casualLeave || 0, sickLeave || 0, earnedLeave || 0, maternityLeave || 0, paternityLeave || 0]
       );
       return result.insertId;
     } catch (error) {
@@ -32,10 +41,18 @@ class Department {
     }
   }
 
-  static async update(id, { name, organizationId }) {
+  static async update(id, { name, organizationId, noticePeriod, casualLeave, sickLeave, earnedLeave, maternityLeave, paternityLeave }) {
     const [result] = await pool.query(
-      'UPDATE departments SET name = ? WHERE id = ? AND organization_id = ?',
-      [name, id, organizationId]
+      `UPDATE departments 
+       SET name = ?,
+           noticePeriod = ?,
+           casualLeave = ?,
+           sickLeave = ?,
+           earnedLeave = ?,
+           maternityLeave = ?,
+           paternityLeave = ?
+       WHERE id = ? AND organization_id = ?`,
+      [name, noticePeriod, casualLeave, sickLeave, earnedLeave, maternityLeave, paternityLeave, id, organizationId]
     );
     return result.affectedRows > 0;
   }
