@@ -1,3 +1,4 @@
+SET FOREIGN_KEY_CHECKS=0;
 -- Organization Table (Multi-Tenant Support)
 CREATE TABLE organizations (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -55,20 +56,22 @@ CREATE TABLE employees (
     phone VARCHAR(20) NOT NULL,
     emergency_contact_name VARCHAR(100),  -- Optional
     emergency_contact_phone VARCHAR(20),  -- Optional
-    date_of_birth DATE NOT NULL,
-    gender ENUM('male', 'female', 'other') NOT NULL,
+    date_of_birth DATE,                  -- Made optional
+    gender ENUM('male', 'female', 'other'), -- Made optional
     blood_group VARCHAR(5),              -- Optional
     addresss TEXT,                        -- Optional
     city VARCHAR(50),                    -- Optional
     statee VARCHAR(50),                   -- Optional
     country VARCHAR(50),                 -- Optional
     postal_code VARCHAR(20),             -- Optional
-    department_id INT NOT NULL,          -- Made required
-    designation_id INT NOT NULL,         -- Made required
-    joining_date DATE NOT NULL,          -- Made required
+    department_id INT NOT NULL,          -- Required
+    designation_id INT NOT NULL,         -- Required
+    shift_id INT NOT NULL,               -- Required
+    joining_date DATE NOT NULL,          -- Required
     salary_type ENUM('monthly', 'daily', 'hourly') NOT NULL,
-    bank_account_number VARCHAR(100) NOT NULL,
-    bank_ifsc_code VARCHAR(20) NOT NULL,
+    salary DECIMAL(10,2) NOT NULL DEFAULT 0.00, -- Required
+    bank_account_number VARCHAR(100),    -- Made optional
+    bank_ifsc_code VARCHAR(20),          -- Made optional
     reporting_manager_id INT,            -- Optional
     project_manager_id INT,              -- Optional
     status ENUM('active', 'inactive') DEFAULT 'active',
@@ -77,9 +80,26 @@ CREATE TABLE employees (
     FOREIGN KEY (organization_id) REFERENCES organizations(id),
     FOREIGN KEY (department_id) REFERENCES departments(id),
     FOREIGN KEY (designation_id) REFERENCES designations(id),
+    FOREIGN KEY (shift_id) REFERENCES shifts(id),
     FOREIGN KEY (reporting_manager_id) REFERENCES employees(id),
     FOREIGN KEY (project_manager_id) REFERENCES employees(id),
     UNIQUE KEY unique_emp_code (organization_id, employee_code)  -- Make employee_code unique per organization
+);
+
+-- Employee Documents Table
+CREATE TABLE employee_documents (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    employee_id INT NOT NULL,
+    document_type ENUM('educational', 'professional', 'identity', 'address', 'others') NOT NULL,
+    file_name VARCHAR(255) NOT NULL,
+    file_path VARCHAR(500) NOT NULL,
+    file_size INT DEFAULT 0,
+    mime_type VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
+    INDEX idx_employee_documents_employee_id (employee_id),
+    INDEX idx_employee_documents_document_type (document_type)
 );
 
 -- Payroll Table

@@ -299,7 +299,7 @@ class SetupController {
     try {
       const { id, organizationId } = req.body;
 
-      const department = await Department.findByIdAndOrganization(id, organizationId);
+      const department = await Department.findByIdAndOrganization({id, organizationId});
       if (!department) {
         return res.status(404).json({
           success: false,
@@ -313,7 +313,7 @@ class SetupController {
         });
       }
 
-      const hasDesignations = await Department.hasDesignations(id, organizationId);
+      const hasDesignations = await Department.hasDesignations({id, organizationId});
       if (hasDesignations) {
         return res.status(409).json({
           success: false,
@@ -327,7 +327,7 @@ class SetupController {
         });
       }
 
-      const deleted = await Department.delete(id, organizationId);
+      const deleted = await Department.delete({id, organizationId});
       if (!deleted) {
         throw new Error('Failed to delete department');
       }
@@ -872,7 +872,7 @@ class SetupController {
 
   static async getHolidays(req, res) {
     try {
-      const { organizationId } = req.body;
+      const { organizationId } = req.query;
       const holidays = await Holiday.getHolidays(organizationId);
       return res.status(200).json({
         success: true,
@@ -935,7 +935,7 @@ class SetupController {
       const { name, description, date, type, status, organizationId } = req.body;
 
       const holidayId = await Holiday.createHoliday({
-        organizationId: organizationId,
+        organizationId,
         name,
         description,
         date,
@@ -1003,7 +1003,7 @@ class SetupController {
         date: date || holiday.date,
         type: type || holiday.type,
         status: status || holiday.status,
-        organizationId: organizationId
+        organizationId
       });
 
       if (!updated) {
@@ -1162,11 +1162,13 @@ class SetupController {
         organizationId: organizationId
       });
 
+      const asset = await Asset.findById(assetId, organizationId);
+
       return res.status(201).json({
         success: true,
         statusCode: 201,
         message: 'Asset created successfully',
-        data: { id: assetId }
+        data: asset
       });
     } catch (error) {
       console.error('Create asset error:', error);

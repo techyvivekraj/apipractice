@@ -34,7 +34,7 @@ app.use(mongoSanitize());
 // Routes
 app.use('/api/v1/auth/', authRoutes);
 app.use('/api/v1/', setupRoutes);
-app.use('/api/v1/', employeeRoutes);
+app.use('/api/v1', employeeRoutes);
 
 // Error Handling
 app.use(errorHandler);

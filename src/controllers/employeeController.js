@@ -1,10 +1,17 @@
 import Employee from '../models/employee/Employee.js';
+import pool from '../config/db.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get the directory name
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 class EmployeeController {
   static async getEmployees(req, res) {
     try {
-      
-      const {organizationId } = req.body;
+      const { organizationId } = req.body;
       const employees = await Employee.findByOrganization(organizationId);
       return res.status(200).json({
         success: true,
@@ -64,6 +71,7 @@ class EmployeeController {
   static async createEmployee(req, res) {
     try {
       const {
+        organizationId,
         employeeCode,
         firstName,
         middleName,
@@ -73,40 +81,55 @@ class EmployeeController {
         dateOfBirth,
         gender,
         bloodGroup,
-        addresss,
+        address,
         city,
-        statee,
+        state,
         country,
         postalCode,
         emergencyContactName,
         emergencyContactPhone,
         departmentId,
         designationId,
+        shiftId,
         joiningDate,
         salaryType,
+        salary,
         bankAccountNumber,
         bankIfscCode,
         reportingManagerId,
-        projectManagerId
+        projectManagerId,
+        documents
       } = req.body;
 
-      const existingEmployee = await Employee.findByEmployeeCode(employeeCode, req.user.organizationId);
-      if (existingEmployee) {
-        return res.status(409).json({
-          success: false,
-          statusCode: 409,
-          errors: [{
-            type: 'conflict',
-            msg: 'Employee code already exists in this organization',
-            path: 'employeeCode',
-            location: 'body'
-          }]
-        });
+      // Check if employee code already exists (if provided)
+      if (employeeCode) {
+        const existingEmployee = await Employee.findByEmployeeCode(employeeCode, req.body.organizationId || req.user.organizationId);
+        if (existingEmployee) {
+          return res.status(409).json({
+            success: false,
+            statusCode: 409,
+            errors: [{
+              type: 'conflict',
+              msg: 'Employee code already exists in this organization',
+              path: 'employeeCode',
+              location: 'body'
+            }]
+          });
+        }
+      }
+
+      // Generate a unique employee code if not provided
+      const finalEmployeeCode = employeeCode || await this.generateEmployeeCode(req.body.organizationId || req.user.organizationId);
+
+      // Process document files if they exist
+      let processedDocuments = {};
+      if (documents && Object.keys(documents).length > 0) {
+        processedDocuments = await this.processDocumentFiles(documents);
       }
 
       const employeeId = await Employee.create({
-        organizationId: req.user.organizationId,
-        employeeCode,
+        organizationId: req.body.organizationId || req.user.organizationId,
+        employeeCode: finalEmployeeCode,
         firstName,
         middleName,
         lastName,
@@ -115,24 +138,27 @@ class EmployeeController {
         dateOfBirth,
         gender,
         bloodGroup,
-        address: addresss,
+        address,
         city,
-        state: statee,
+        state,
         country,
         postalCode,
         emergencyContactName,
         emergencyContactPhone,
         departmentId,
         designationId,
+        shiftId,
         joiningDate,
         salaryType,
+        salary,
         bankAccountNumber,
         bankIfscCode,
         reportingManagerId,
-        projectManagerId
+        projectManagerId,
+        documents: processedDocuments
       });
 
-      const employee = await Employee.findById(employeeId, req.user.organizationId);
+      const employee = await Employee.findById(employeeId, req.body.organizationId || req.user.organizationId);
 
       return res.status(201).json({
         success: true,
@@ -147,7 +173,7 @@ class EmployeeController {
         statusCode: 500,
         errors: [{
           type: 'server',
-          msg: 'Failed to create employee',
+          msg: 'Failed to create employee: ' + error.message,
           path: 'server',
           location: 'internal'
         }]
@@ -159,6 +185,7 @@ class EmployeeController {
     try {
       const { id } = req.params;
       const {
+        employeeCode,
         firstName,
         middleName,
         lastName,
@@ -167,24 +194,28 @@ class EmployeeController {
         dateOfBirth,
         gender,
         bloodGroup,
-        addresss,
+        address,
         city,
-        statee,
+        state,
         country,
         postalCode,
         emergencyContactName,
         emergencyContactPhone,
         departmentId,
         designationId,
+        shiftId,
+        joiningDate,
         salaryType,
+        salary,
         bankAccountNumber,
         bankIfscCode,
         reportingManagerId,
         projectManagerId,
-        status
+        status,
+        documents
       } = req.body;
 
-      const employee = await Employee.findById(id, req.user.organizationId);
+      const employee = await Employee.findById(id, req.body.organizationId || req.user.organizationId);
       if (!employee) {
         return res.status(404).json({
           success: false,
@@ -198,7 +229,14 @@ class EmployeeController {
         });
       }
 
+      // Process document files if they exist
+      let processedDocuments = {};
+      if (documents && Object.keys(documents).length > 0) {
+        processedDocuments = await this.processDocumentFiles(documents);
+      }
+
       const updated = await Employee.update(id, {
+        employeeCode,
         firstName,
         middleName,
         lastName,
@@ -207,29 +245,33 @@ class EmployeeController {
         dateOfBirth,
         gender,
         bloodGroup,
-        address: addresss,
+        address,
         city,
-        state: statee,
+        state,
         country,
         postalCode,
         emergencyContactName,
         emergencyContactPhone,
         departmentId,
         designationId,
+        shiftId,
+        joiningDate,
         salaryType,
+        salary,
         bankAccountNumber,
         bankIfscCode,
         reportingManagerId,
         projectManagerId,
         status,
-        organizationId: req.user.organizationId
+        documents: processedDocuments,
+        organizationId: req.body.organizationId || req.user.organizationId
       });
 
       if (!updated) {
         throw new Error('Failed to update employee');
       }
 
-      const updatedEmployee = await Employee.findById(id, req.user.organizationId);
+      const updatedEmployee = await Employee.findById(id, req.body.organizationId || req.user.organizationId);
 
       return res.status(200).json({
         success: true,
@@ -244,7 +286,7 @@ class EmployeeController {
         statusCode: 500,
         errors: [{
           type: 'server',
-          msg: 'Failed to update employee',
+          msg: 'Failed to update employee: ' + error.message,
           path: 'server',
           location: 'internal'
         }]
@@ -359,6 +401,115 @@ class EmployeeController {
         errors: [{
           type: 'server',
           msg: 'Failed to fetch employee',
+          path: 'server',
+          location: 'internal'
+        }]
+      });
+    }
+  }
+
+  // Helper method to generate a unique employee code
+  static async generateEmployeeCode(organizationId) {
+    try {
+      // Get the current year
+      const year = new Date().getFullYear().toString().slice(-2);
+      
+      // Get the count of employees in the organization
+      const [result] = await pool.query(
+        'SELECT COUNT(*) as count FROM employees WHERE organization_id = ?',
+        [organizationId]
+      );
+      
+      const count = result[0].count + 1;
+      
+      // Format: EMP-YY-XXXX (where YY is year and XXXX is sequential number)
+      return `EMP-${year}-${count.toString().padStart(4, '0')}`;
+    } catch (error) {
+      console.error('Generate employee code error:', error);
+      throw new Error('Failed to generate employee code');
+    }
+  }
+  
+  // Helper method to process document files
+  static async processDocumentFiles(documents) {
+    try {
+      // Create uploads directory if it doesn't exist
+      const uploadsDir = path.join(__dirname, '../../uploads/employee_documents');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+      
+      const processedDocuments = {};
+      
+      for (const [category, files] of Object.entries(documents)) {
+        if (Array.isArray(files) && files.length > 0) {
+          processedDocuments[category] = [];
+          
+          for (const file of files) {
+            // In a real implementation, this would save the file to disk or cloud storage
+            // For now, we'll just simulate file processing
+            
+            // Generate a unique filename
+            const timestamp = Date.now();
+            const randomString = Math.random().toString(36).substring(2, 15);
+            const fileExt = path.extname(file.name);
+            const fileName = `${timestamp}-${randomString}${fileExt}`;
+            const filePath = path.join(uploadsDir, fileName);
+            
+            // In a real implementation, we would write the file to disk
+            // fs.writeFileSync(filePath, file.data);
+            
+            processedDocuments[category].push({
+              name: file.name,
+              path: `/uploads/employee_documents/${fileName}`,
+              size: file.size || 0,
+              type: file.type || ''
+            });
+          }
+        }
+      }
+      
+      return processedDocuments;
+    } catch (error) {
+      console.error('Process document files error:', error);
+      throw new Error('Failed to process document files');
+    }
+  }
+  
+  // Get employee documents
+  static async getEmployeeDocuments(req, res) {
+    try {
+      const { id } = req.params;
+      
+      const employee = await Employee.findById(id, req.user.organizationId);
+      if (!employee) {
+        return res.status(404).json({
+          success: false,
+          statusCode: 404,
+          errors: [{
+            type: 'notFound',
+            msg: 'Employee not found',
+            path: 'id',
+            location: 'params'
+          }]
+        });
+      }
+      
+      const documents = await Employee.getEmployeeDocuments(id);
+      
+      return res.status(200).json({
+        success: true,
+        statusCode: 200,
+        data: documents
+      });
+    } catch (error) {
+      console.error('Get employee documents error:', error);
+      return res.status(500).json({
+        success: false,
+        statusCode: 500,
+        errors: [{
+          type: 'server',
+          msg: 'Failed to fetch employee documents',
           path: 'server',
           location: 'internal'
         }]

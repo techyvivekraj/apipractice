@@ -12,11 +12,14 @@ router.get('/employees', authMiddleware, EmployeeController.getEmployees);
 // Get potential managers for assignment
 router.get('/employees/managers', authMiddleware, EmployeeController.getManagers);
 
-// Get employee by employee code
-router.get('/employees/code/:employeeCode', authMiddleware, EmployeeController.getEmployeeByCode);
+// Get employee by ID
+router.get('/employees/:id', EmployeeController.getEmployeeById);
 
-// Get single employee by ID
-router.get('/employees/:id', authMiddleware, EmployeeController.getEmployeeById);
+// Get employee by employee code
+router.get('/employees/code/:employeeCode', EmployeeController.getEmployeeByCode);
+
+// Get employee documents
+router.get('/employees/:id/documents', EmployeeController.getEmployeeDocuments);
 
 // Create employee
 router.post('/employees',

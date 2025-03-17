@@ -6,11 +6,15 @@ class Employee {
       `SELECT e.*, 
         d.name as department_name, 
         des.name as designation_name,
-        rm.first_name as reporting_manager_name,
-        pm.first_name as project_manager_name
+        s.name as shift_name,
+        rm.first_name as reporting_manager_first_name,
+        rm.last_name as reporting_manager_last_name,
+        pm.first_name as project_manager_first_name,
+        pm.last_name as project_manager_last_name
        FROM employees e
        LEFT JOIN departments d ON e.department_id = d.id
        LEFT JOIN designations des ON e.designation_id = des.id
+       LEFT JOIN shifts s ON e.shift_id = s.id
        LEFT JOIN employees rm ON e.reporting_manager_id = rm.id
        LEFT JOIN employees pm ON e.project_manager_id = pm.id
        WHERE e.organization_id = ?`,
@@ -24,11 +28,15 @@ class Employee {
       `SELECT e.*, 
         d.name as department_name, 
         des.name as designation_name,
-        rm.name as reporting_manager_name,
-        pm.name as project_manager_name
+        s.name as shift_name,
+        rm.first_name as reporting_manager_first_name,
+        rm.last_name as reporting_manager_last_name,
+        pm.first_name as project_manager_first_name,
+        pm.last_name as project_manager_last_name
        FROM employees e
        LEFT JOIN departments d ON e.department_id = d.id
        LEFT JOIN designations des ON e.designation_id = des.id
+       LEFT JOIN shifts s ON e.shift_id = s.id
        LEFT JOIN employees rm ON e.reporting_manager_id = rm.id
        LEFT JOIN employees pm ON e.project_manager_id = pm.id
        WHERE e.id = ? AND e.organization_id = ?`,
@@ -57,61 +65,105 @@ class Employee {
     emergencyContactPhone,
     departmentId,
     designationId,
+    shiftId,
     joiningDate,
     salaryType,
+    salary,
     bankAccountNumber,
     bankIfscCode,
     reportingManagerId,
-    projectManagerId
+    projectManagerId,
+    documents
   }) {
     const [result] = await pool.query(
       `INSERT INTO employees (
         organization_id, employee_code, first_name, middle_name, last_name,
         email, phone, date_of_birth, gender, blood_group,
-        address, city, state, country, postal_code,
+        addresss, city, statee, country, postal_code,
         emergency_contact_name, emergency_contact_phone,
-        department_id, designation_id, joining_date,
-        salary_type, bank_account_number, bank_ifsc_code,
+        department_id, designation_id, shift_id, joining_date,
+        salary_type, salary, bank_account_number, bank_ifsc_code,
         reporting_manager_id, project_manager_id
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         organizationId, employeeCode, firstName, middleName, lastName,
         email, phone, dateOfBirth, gender, bloodGroup,
         address, city, state, country, postalCode,
         emergencyContactName, emergencyContactPhone,
-        departmentId, designationId, joiningDate,
-        salaryType, bankAccountNumber, bankIfscCode,
+        departmentId, designationId, shiftId, joiningDate,
+        salaryType, salary, bankAccountNumber, bankIfscCode,
         reportingManagerId, projectManagerId
       ]
     );
-    return result.insertId;
+    
+    const employeeId = result.insertId;
+    
+    // If documents are provided, store them
+    if (documents && Object.keys(documents).length > 0) {
+      await this.storeEmployeeDocuments(employeeId, documents);
+    }
+    
+    return employeeId;
   }
 
   static async update(id, {
+    firstName,
+    middleName,
+    lastName,
+    email,
+    phone,
+    dateOfBirth,
+    gender,
+    bloodGroup,
+    address,
+    city,
+    state,
+    country,
+    postalCode,
+    emergencyContactName,
+    emergencyContactPhone,
     departmentId,
     designationId,
+    shiftId,
+    joiningDate,
     salaryType,
+    salary,
     bankAccountNumber,
     bankIfscCode,
     reportingManagerId,
     projectManagerId,
     status,
+    documents,
     organizationId
   }) {
     const [result] = await pool.query(
       `UPDATE employees 
-       SET department_id = ?, designation_id = ?, salary_type = ?,
-           bank_account_number = ?, bank_ifsc_code = ?,
+       SET first_name = ?, middle_name = ?, last_name = ?,
+           email = ?, phone = ?, date_of_birth = ?, gender = ?, blood_group = ?,
+           addresss = ?, city = ?, statee = ?, country = ?, postal_code = ?,
+           emergency_contact_name = ?, emergency_contact_phone = ?,
+           department_id = ?, designation_id = ?, shift_id = ?, joining_date = ?,
+           salary_type = ?, salary = ?, bank_account_number = ?, bank_ifsc_code = ?,
            reporting_manager_id = ?, project_manager_id = ?,
            status = ?
        WHERE id = ? AND organization_id = ?`,
       [
-        departmentId, designationId, salaryType,
-        bankAccountNumber, bankIfscCode,
+        firstName, middleName, lastName,
+        email, phone, dateOfBirth, gender, bloodGroup,
+        address, city, state, country, postalCode,
+        emergencyContactName, emergencyContactPhone,
+        departmentId, designationId, shiftId, joiningDate,
+        salaryType, salary, bankAccountNumber, bankIfscCode,
         reportingManagerId, projectManagerId, status,
         id, organizationId
       ]
     );
+    
+    // If documents are provided, update them
+    if (documents && Object.keys(documents).length > 0) {
+      await this.updateEmployeeDocuments(id, documents);
+    }
+    
     return result.affectedRows > 0;
   }
 
@@ -236,17 +288,104 @@ class Employee {
       `SELECT e.*, 
         d.name as department_name, 
         des.name as designation_name,
-        rm.name as reporting_manager_name,
-        pm.name as project_manager_name
+        s.name as shift_name,
+        rm.first_name as reporting_manager_first_name,
+        rm.last_name as reporting_manager_last_name,
+        pm.first_name as project_manager_first_name,
+        pm.last_name as project_manager_last_name
        FROM employees e
        LEFT JOIN departments d ON e.department_id = d.id
        LEFT JOIN designations des ON e.designation_id = des.id
+       LEFT JOIN shifts s ON e.shift_id = s.id
        LEFT JOIN employees rm ON e.reporting_manager_id = rm.id
        LEFT JOIN employees pm ON e.project_manager_id = pm.id
        WHERE e.employee_code = ? AND e.organization_id = ?`,
       [employeeCode, organizationId]
     );
     return rows[0];
+  }
+
+  // Method to store employee documents
+  static async storeEmployeeDocuments(employeeId, documents) {
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+      
+      for (const [category, files] of Object.entries(documents)) {
+        if (Array.isArray(files) && files.length > 0) {
+          for (const file of files) {
+            await connection.query(
+              `INSERT INTO employee_documents (
+                employee_id, document_type, file_name, file_path, file_size, mime_type
+              ) VALUES (?, ?, ?, ?, ?, ?)`,
+              [
+                employeeId,
+                category,
+                file.name,
+                file.path || '',
+                file.size || 0,
+                file.type || ''
+              ]
+            );
+          }
+        }
+      }
+      
+      await connection.commit();
+      return true;
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  }
+  
+  // Method to update employee documents
+  static async updateEmployeeDocuments(employeeId, documents) {
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+      
+      // First, delete existing documents for this employee
+      await connection.query(
+        'DELETE FROM employee_documents WHERE employee_id = ?',
+        [employeeId]
+      );
+      
+      // Then add the new documents
+      await this.storeEmployeeDocuments(employeeId, documents);
+      
+      await connection.commit();
+      return true;
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  }
+  
+  // Method to get employee documents
+  static async getEmployeeDocuments(employeeId) {
+    const [rows] = await pool.query(
+      `SELECT id, document_type, file_name, file_path, file_size, mime_type, created_at
+       FROM employee_documents
+       WHERE employee_id = ?
+       ORDER BY document_type, created_at`,
+      [employeeId]
+    );
+    
+    // Group documents by category
+    const documents = {};
+    for (const row of rows) {
+      if (!documents[row.document_type]) {
+        documents[row.document_type] = [];
+      }
+      documents[row.document_type].push(row);
+    }
+    
+    return documents;
   }
 }
 
