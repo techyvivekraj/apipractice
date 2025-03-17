@@ -11,7 +11,7 @@ const __dirname = path.dirname(__filename);
 class EmployeeController {
   static async getEmployees(req, res) {
     try {
-      const { organizationId } = req.body;
+      const { organizationId } = req.query;
       const employees = await Employee.findByOrganization(organizationId);
       return res.status(200).json({
         success: true,
