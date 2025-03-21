@@ -119,6 +119,11 @@ const validationRules = {
       .trim()
       .isLength({ max: 100 }).withMessage('Bank Name must be less than 100 characters'),
 
+    body('reportingManagerId')
+    .optional()
+    .trim()
+    .isInt().withMessage('Invalid Reporting manager ID'),
+
     // File validations
     body('educationalDocuments.*')
       .optional()

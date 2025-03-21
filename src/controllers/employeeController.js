@@ -17,14 +17,14 @@ class EmployeeController {
       const {
         firstName, lastName, phone, email, joiningDate, departmentId, designationId, shiftId, salaryType, salary,
         middleName,emergencyContactName,emergencyContactPhone, employeeCode, address, country, state, postalCode, dateOfBirth, gender, bloodGroup,
-        bankAccountNumber, bankIfsc, bankName, organizationId
+        bankAccountNumber, bankIfsc, bankName,reportingManagerId, organizationId
       } = req.body;
 
       // Create employee
       const employeeId = await Employee.create({
         firstName, lastName, phone, email, joiningDate, departmentId, designationId, shiftId, salaryType, salary,
         middleName,emergencyContactName,emergencyContactPhone, employeeCode, address, country, state, postalCode, dateOfBirth, gender, bloodGroup,
-        bankAccountNumber, bankIfsc, bankName, organizationId
+        bankAccountNumber, bankIfsc, bankName,reportingManagerId, organizationId
       });
 
       // Handle document uploads if any
@@ -68,6 +68,20 @@ class EmployeeController {
           if (fs.existsSync(file.path)) {
             fs.unlinkSync(file.path);
           }
+        });
+      }
+
+      // Handle duplicate email error
+      if (error.message === 'Email already exists') {
+        return res.status(409).json({
+          success: false,
+          statusCode: 409,
+          errors: [{
+            type: 'duplicate',
+            msg: 'Email already exists',
+            path: 'email',
+            location: 'body'
+          }]
         });
       }
 

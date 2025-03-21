@@ -2,27 +2,34 @@ import pool from '../../config/db.js';
 
 class Employee {
   static async create({
-    firstName, middleName, lastName, phone, email, joiningDate, departmentId,
+    firstName, middleName, emergencyContactName, emergencyContactPhone, lastName, phone, email, joiningDate, departmentId,
     designationId, shiftId, salaryType, salary, employeeCode, address, country,
     state, postalCode, dateOfBirth, gender, bloodGroup, bankAccountNumber,
-    bankIfsc, organizationId
+    bankIfsc, bankName, reportingManagerId, organizationId
   }) {
-    const [result] = await pool.query(
-      `INSERT INTO employees (
-        first_name, middle_name,emergency_contact_name,emergency_contact_phone, last_name, phone, email, joining_date, 
-        department_id, designation_id, shift_id, salary_type, salary, 
-        employee_code, address, country, state, postal_code, date_of_birth, 
-        gender, blood_group, bank_account_number, bank_ifsc_code, 
-        organization_id
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        firstName, middleName, , emergencyContactName, emergencyContactPhone, lastName, phone, email, joiningDate,
-        departmentId, designationId, shiftId, salaryType, salary,
-        employeeCode, address, country, state, postalCode, dateOfBirth,
-        gender, bloodGroup, bankAccountNumber, bankIfsc, organizationId
-      ]
-    );
-    return result.insertId;
+    try {
+      const [result] = await pool.query(
+        `INSERT INTO employees (
+          first_name, middle_name,emergency_contact_name,emergency_contact_phone, last_name, phone, email, joining_date, 
+          department_id, designation_id, shift_id, salary_type, salary, 
+          employee_code, address, country, state, postal_code, date_of_birth, 
+          gender, blood_group, bank_account_number, bank_ifsc_code, bank_name,reporting_manager_id,
+          organization_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          firstName, middleName, emergencyContactName, emergencyContactPhone, lastName, phone, email, joiningDate,
+          departmentId, designationId, shiftId, salaryType, salary,
+          employeeCode, address, country, state, postalCode, dateOfBirth,
+          gender, bloodGroup, bankAccountNumber, bankIfsc, bankName, reportingManagerId, organizationId
+        ]
+      );
+      return result.insertId;
+    } catch (error) {
+      if (error.code === 'ER_DUP_ENTRY' && error.sqlMessage.includes('email')) {
+        throw new Error('Email already exists');
+      }
+      throw error;
+    }
   }
 
   static async addDocuments(employeeId, documents) {
@@ -90,7 +97,8 @@ class Employee {
            shift_id = ?, salary_type = ?, salary = ?, employee_code = ?, 
            address = ?, country = ?, state = ?, postal_code = ?, 
            date_of_birth = ?, gender = ?, blood_group = ?, 
-           bank_account_number = ?, bank_ifsc_code = ?
+           bank_account_number = ?, bank_ifsc_code = ?, bank_name = ?,
+           reporting_manager_id = ?
        WHERE id = ? AND organization_id = ?`,
       [
         updateData.firstName, updateData.middleName, updateData.lastName,
@@ -100,6 +108,7 @@ class Employee {
         updateData.address, updateData.country, updateData.state,
         updateData.postalCode, updateData.dateOfBirth, updateData.gender,
         updateData.bloodGroup, updateData.bankAccountNumber, updateData.bankIfsc,
+        updateData.bankName, updateData.reportingManagerId,
         employeeId, organizationId
       ]
     );
