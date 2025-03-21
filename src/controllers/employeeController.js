@@ -16,14 +16,14 @@ class EmployeeController {
 
       const {
         firstName, lastName, phone, email, joiningDate, departmentId, designationId, shiftId, salaryType, salary,
-        middleName, employeeCode, address, country, state, postalCode, dateOfBirth, gender, bloodGroup,
+        middleName,emergencyContactName,emergencyContactPhone, employeeCode, address, country, state, postalCode, dateOfBirth, gender, bloodGroup,
         bankAccountNumber, bankIfsc, bankName, organizationId
       } = req.body;
 
       // Create employee
       const employeeId = await Employee.create({
         firstName, lastName, phone, email, joiningDate, departmentId, designationId, shiftId, salaryType, salary,
-        middleName, employeeCode, address, country, state, postalCode, dateOfBirth, gender, bloodGroup,
+        middleName,emergencyContactName,emergencyContactPhone, employeeCode, address, country, state, postalCode, dateOfBirth, gender, bloodGroup,
         bankAccountNumber, bankIfsc, bankName, organizationId
       });
 

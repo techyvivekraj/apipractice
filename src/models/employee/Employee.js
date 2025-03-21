@@ -2,23 +2,23 @@ import pool from '../../config/db.js';
 
 class Employee {
   static async create({
-    firstName, middleName, lastName, phone, email, joiningDate, departmentId, 
-    designationId, shiftId, salaryType, salary, employeeCode, address, country, 
-    state, postalCode, dateOfBirth, gender, bloodGroup, bankAccountNumber, 
+    firstName, middleName, lastName, phone, email, joiningDate, departmentId,
+    designationId, shiftId, salaryType, salary, employeeCode, address, country,
+    state, postalCode, dateOfBirth, gender, bloodGroup, bankAccountNumber,
     bankIfsc, organizationId
   }) {
     const [result] = await pool.query(
       `INSERT INTO employees (
-        first_name, middle_name, last_name, phone, email, joining_date, 
+        first_name, middle_name,emergency_contact_name,emergency_contact_phone, last_name, phone, email, joining_date, 
         department_id, designation_id, shift_id, salary_type, salary, 
         employee_code, address, country, state, postal_code, date_of_birth, 
         gender, blood_group, bank_account_number, bank_ifsc_code, 
-        organization_id, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+        organization_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        firstName, middleName, lastName, phone, email, joiningDate, 
-        departmentId, designationId, shiftId, salaryType, salary, 
-        employeeCode, address, country, state, postalCode, dateOfBirth, 
+        firstName, middleName, , emergencyContactName, emergencyContactPhone, lastName, phone, email, joiningDate,
+        departmentId, designationId, shiftId, salaryType, salary,
+        employeeCode, address, country, state, postalCode, dateOfBirth,
         gender, bloodGroup, bankAccountNumber, bankIfsc, organizationId
       ]
     );
@@ -39,7 +39,7 @@ class Employee {
       await pool.query(
         `INSERT INTO employee_documents (
           employee_id, document_type, file_name, file_path, 
-          file_size, mime_type, created_at
+          file_size, mime_type
         ) VALUES ?`,
         [allDocuments]
       );

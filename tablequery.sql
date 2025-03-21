@@ -48,7 +48,7 @@ CREATE TABLE designations (
 CREATE TABLE employees (
     id INT PRIMARY KEY AUTO_INCREMENT,
     organization_id INT NOT NULL,
-    employee_code VARCHAR(50) NOT NULL,  -- Unique employee ID/code within organization
+    employee_code VARCHAR(50) NULL,
     first_name VARCHAR(50) NOT NULL,
     middle_name VARCHAR(50),             -- Optional
     last_name VARCHAR(50) NOT NULL,

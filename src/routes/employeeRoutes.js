@@ -43,26 +43,26 @@ router.post('/employees',
   EmployeeController.addEmployee
 );
 
-router.get('/:id',
+router.get('/employees/:id',
   authMiddleware,
   validate(validationRules.getEmployee),
   EmployeeController.getEmployee
 );
 
-router.get('/',
+router.get('/employees',
   authMiddleware,
   validate(validationRules.getEmployees),
   EmployeeController.getEmployees
 );
 
-router.put('/:id',
+router.put('/employees/:id',
   authMiddleware,
   uploadFields,
   validate(validationRules.updateEmployee),
   EmployeeController.updateEmployee
 );
 
-router.delete('/:id',
+router.delete('/employees/:id',
   authMiddleware,
   validate(validationRules.deleteEmployee),
   EmployeeController.deleteEmployee
