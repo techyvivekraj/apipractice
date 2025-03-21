@@ -4,11 +4,11 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import mongoSanitize from 'express-mongo-sanitize';
 import authRoutes from './src/routes/authRoute.js';
+import employeeRoutes from './src/routes/employeeRoutes.js';
 import errorHandler from './src/utils/errorHandler.js';
 import db from './src/config/db.js';
 import compression from 'compression';
 import setupRoutes from './src/routes/setupRoute.js';
-import employeeRoutes from './src/routes/employeeRoutes.js';
 const app = express();
 
 // Security Middleware
@@ -21,11 +21,11 @@ app.use(cors({
 }));
 
 // Rate Limiting
-// const limiter = rateLimit({
-//   windowMs: process.env.RATE_LIMIT_WINDOW * 60 * 1000,
-//   max: process.env.RATE_LIMIT_MAX,
-// });
-// app.use(limiter);
+const limiter = rateLimit({
+  windowMs: process.env.RATE_LIMIT_WINDOW * 60 * 1000,
+  max: process.env.RATE_LIMIT_MAX,
+});
+app.use(limiter);
 
 // Body Parsing
 app.use(express.json({ limit: '10kb' }));
@@ -34,7 +34,7 @@ app.use(mongoSanitize());
 // Routes
 app.use('/api/v1/auth/', authRoutes);
 app.use('/api/v1/', setupRoutes);
-app.use('/api/v1', employeeRoutes);
+app.use('/api/v1/', employeeRoutes);
 
 // Error Handling
 app.use(errorHandler);

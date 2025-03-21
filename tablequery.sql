@@ -59,9 +59,9 @@ CREATE TABLE employees (
     date_of_birth DATE,                  -- Made optional
     gender ENUM('male', 'female', 'other'), -- Made optional
     blood_group VARCHAR(5),              -- Optional
-    addresss TEXT,                        -- Optional
+    address TEXT,                        -- Optional
     city VARCHAR(50),                    -- Optional
-    statee VARCHAR(50),                   -- Optional
+    state VARCHAR(50),                   -- Optional
     country VARCHAR(50),                 -- Optional
     postal_code VARCHAR(20),             -- Optional
     department_id INT NOT NULL,          -- Required
@@ -72,8 +72,8 @@ CREATE TABLE employees (
     salary DECIMAL(10,2) NOT NULL DEFAULT 0.00, -- Required
     bank_account_number VARCHAR(100),    -- Made optional
     bank_ifsc_code VARCHAR(20),          -- Made optional
+    bank_name VARCHAR(20),          -- Made optional
     reporting_manager_id INT,            -- Optional
-    project_manager_id INT,              -- Optional
     status ENUM('active', 'inactive') DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -82,7 +82,6 @@ CREATE TABLE employees (
     FOREIGN KEY (designation_id) REFERENCES designations(id),
     FOREIGN KEY (shift_id) REFERENCES shifts(id),
     FOREIGN KEY (reporting_manager_id) REFERENCES employees(id),
-    FOREIGN KEY (project_manager_id) REFERENCES employees(id),
     UNIQUE KEY unique_emp_code (organization_id, employee_code)  -- Make employee_code unique per organization
 );
 

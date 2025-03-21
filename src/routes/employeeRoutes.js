@@ -1,43 +1,70 @@
 import express from 'express';
+import multer from 'multer';
 import EmployeeController from '../controllers/employeeController.js';
 import authMiddleware from '../middleware/authMiddleware.js';
 import validate from '../utils/validations/validate.js';
-import employeeValidationRules from '../utils/validations/employeeValidation.js';
+import validationRules from '../utils/validations/employeeValidation.js';
+import { ALLOWED_MIME_TYPES, UPLOAD_FIELDS } from '../config/fileUpload.js';
 
 const router = express.Router();
 
-// Get all employees
-router.get('/employees', authMiddleware, EmployeeController.getEmployees);
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  }
+});
 
-// Get potential managers for assignment
-router.get('/employees/managers', authMiddleware, EmployeeController.getManagers);
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only PDF, JPEG, PNG, and DOC files are allowed.'));
+    }
+  }
+});
 
-// Get employee by ID
-router.get('/employees/:id', EmployeeController.getEmployeeById);
+// Configure multiple file upload fields
+const uploadFields = upload.fields(UPLOAD_FIELDS);
 
-// Get employee by employee code
-router.get('/employees/code/:employeeCode', EmployeeController.getEmployeeByCode);
-
-// Get employee documents
-router.get('/employees/:id/documents', EmployeeController.getEmployeeDocuments);
-
-// Create employee
+// Employee routes
 router.post('/employees',
   authMiddleware,
-  validate(employeeValidationRules),
-  EmployeeController.createEmployee
+  uploadFields,
+  validate(validationRules.addEmployee),
+  EmployeeController.addEmployee
 );
 
-// Update employee
-router.put('/employees/:id',
+router.get('/:id',
   authMiddleware,
-  validate(employeeValidationRules),
+  validate(validationRules.getEmployee),
+  EmployeeController.getEmployee
+);
+
+router.get('/',
+  authMiddleware,
+  validate(validationRules.getEmployees),
+  EmployeeController.getEmployees
+);
+
+router.put('/:id',
+  authMiddleware,
+  uploadFields,
+  validate(validationRules.updateEmployee),
   EmployeeController.updateEmployee
 );
 
-// Delete employee
-router.delete('/employees/:id',
+router.delete('/:id',
   authMiddleware,
+  validate(validationRules.deleteEmployee),
   EmployeeController.deleteEmployee
 );
 
