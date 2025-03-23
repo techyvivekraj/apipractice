@@ -14,42 +14,82 @@ class EmployeeController {
         });
       }
 
+      // Extract employee data from request body
       const {
-        firstName, lastName, phone, email, joiningDate, departmentId, designationId, shiftId, salaryType, salary,
-        middleName,emergencyContactName,emergencyContactPhone, employeeCode, address, country, state, postalCode, dateOfBirth, gender, bloodGroup,
-        bankAccountNumber, bankIfsc, bankName,reportingManagerId, organizationId
+        firstName, lastName, phone, email, joiningDate, departmentId, 
+        designationId, shiftId, salaryType, salary,
+        middleName, employeeCode, address, country, state, city,
+        postalCode, dateOfBirth, gender, bloodGroup,
+        emergencyContact: emergencyContactPhone, emergencyName: emergencyContactName,
+        reportingManagerId, bankAccountNumber, bankIfsc,
+        bankName, organizationId
       } = req.body;
 
-      // Create employee
+      // Create employee record
       const employeeId = await Employee.create({
-        firstName, lastName, phone, email, joiningDate, departmentId, designationId, shiftId, salaryType, salary,
-        middleName,emergencyContactName,emergencyContactPhone, employeeCode, address, country, state, postalCode, dateOfBirth, gender, bloodGroup,
-        bankAccountNumber, bankIfsc, bankName,reportingManagerId, organizationId
+        firstName,
+        lastName,
+        phone,
+        email,
+        joiningDate,
+        departmentId,
+        designationId,
+        shiftId,
+        salaryType,
+        salary,
+        middleName,
+        employeeCode,
+        address,
+        country,
+        state,
+        postalCode,
+        dateOfBirth,
+        gender,
+        bloodGroup,
+        emergencyContactPhone,
+        emergencyContactName,
+        reportingManagerId,
+        bankAccountNumber,
+        bankIfsc,
+        bankName,
+        organizationId
       });
 
       // Handle document uploads if any
       if (req.files) {
         const documents = {
-          educationalDocuments: [],
-          professionalDocuments: [],
-          identityDocuments: [],
-          addressDocuments: [],
-          otherDocuments: []
-        };
-
-        // Process each uploaded file
-        for (const file of req.files) {
-          const documentType = file.fieldname.replace('Documents', '');
-          
-          documents[`${documentType}Documents`].push({
+          educationalDocuments: req.files['educationalDocs']?.map(file => ({
             fileName: file.filename,
             filePath: file.path,
             fileSize: file.size,
             mimeType: file.mimetype
-          });
-        }
+          })) || [],
+          professionalDocuments: req.files['professionalDocs']?.map(file => ({
+            fileName: file.filename,
+            filePath: file.path,
+            fileSize: file.size,
+            mimeType: file.mimetype
+          })) || [],
+          identityDocuments: req.files['identityDocs']?.map(file => ({
+            fileName: file.filename,
+            filePath: file.path,
+            fileSize: file.size,
+            mimeType: file.mimetype
+          })) || [],
+          addressDocuments: req.files['addressDocs']?.map(file => ({
+            fileName: file.filename,
+            filePath: file.path,
+            fileSize: file.size,
+            mimeType: file.mimetype
+          })) || [],
+          otherDocuments: req.files['otherDocs']?.map(file => ({
+            fileName: file.filename,
+            filePath: file.path,
+            fileSize: file.size,
+            mimeType: file.mimetype
+          })) || []
+        };
 
-        // Add documents to database
         await Employee.addDocuments(employeeId, documents);
       }
 
@@ -64,7 +104,7 @@ class EmployeeController {
       
       // Clean up uploaded files if there's an error
       if (req.files) {
-        req.files.forEach(file => {
+        Object.values(req.files).flat().forEach(file => {
           if (fs.existsSync(file.path)) {
             fs.unlinkSync(file.path);
           }
@@ -251,7 +291,6 @@ class EmployeeController {
         message: 'Employee deleted successfully'
       });
     } catch (error) {
-      console.error('Delete Employee Error:', error);
       return res.status(500).json({
         success: false,
         statusCode: 500,
