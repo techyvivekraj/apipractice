@@ -45,6 +45,7 @@ CREATE TABLE designations (
 );
 
 -- Employee Table (HR Employee Records)
+
 CREATE TABLE employees (
     id INT PRIMARY KEY AUTO_INCREMENT,
     organization_id INT NOT NULL,
@@ -56,7 +57,7 @@ CREATE TABLE employees (
     phone VARCHAR(20) NOT NULL,
     emergency_contact_name VARCHAR(100),  -- Optional
     emergency_contact_phone VARCHAR(20),  -- Optional
-    date_of_birth DATE,                  -- Made optional
+    date_of_birth VARCHAR(50),                  -- Made optional
     gender ENUM('male', 'female', 'other'), -- Made optional
     blood_group VARCHAR(5),              -- Optional
     address TEXT,                        -- Optional
@@ -67,7 +68,7 @@ CREATE TABLE employees (
     department_id INT NOT NULL,          -- Required
     designation_id INT NOT NULL,         -- Required
     shift_id INT NOT NULL,               -- Required
-    joining_date DATE NOT NULL,          -- Required
+    joining_date VARCHAR(50) NOT NULL,          -- Required
     salary_type ENUM('monthly', 'daily', 'hourly') NOT NULL,
     salary DECIMAL(10,2) NOT NULL DEFAULT 0.00, -- Required
     bank_account_number VARCHAR(100),    -- Made optional

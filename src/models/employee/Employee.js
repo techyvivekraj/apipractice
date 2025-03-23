@@ -8,6 +8,7 @@ class Employee {
     bankIfsc, bankName, reportingManagerId, organizationId
   }) {
     try {
+
       const [result] = await pool.query(
         `INSERT INTO employees (
           first_name, middle_name,emergency_contact_name,emergency_contact_phone, last_name, phone, email, joining_date, 
@@ -90,6 +91,7 @@ class Employee {
   }
 
   static async update(employeeId, organizationId, updateData) {
+
     const [result] = await pool.query(
       `UPDATE employees 
        SET first_name = ?, middle_name = ?, last_name = ?, phone = ?, 
