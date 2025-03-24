@@ -9,6 +9,7 @@ import errorHandler from './src/utils/errorHandler.js';
 import db from './src/config/db.js';
 import compression from 'compression';
 import setupRoutes from './src/routes/setupRoute.js';
+import attendanceRoutes from './src/routes/attendanceRoutes.js';
 const app = express();
 
 // Security Middleware
@@ -35,6 +36,7 @@ app.use(mongoSanitize());
 app.use('/api/v1/auth/', authRoutes);
 app.use('/api/v1/', setupRoutes);
 app.use('/api/v1/', employeeRoutes);
+app.use('/api/v1/', attendanceRoutes);
 
 // Error Handling
 app.use(errorHandler);

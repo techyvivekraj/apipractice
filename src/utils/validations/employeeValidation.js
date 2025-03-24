@@ -56,15 +56,14 @@ const validationRules = {
       .trim()
       .isLength({ max: 50 }).withMessage('Middle Name must be less than 50 characters'),
 
-    body('emergencyContactName')
+    body('emergencyName')
       .optional()
       .trim()
       .isLength({ max: 50 }).withMessage('Emergency Contact Name must be less than 50 characters'),
 
-    body('emergencyContactPhone')
+    body('emergencyContact')
       .optional()
-      .matches(/^[0-9+\s-()]{10,}$/)
-      .withMessage('Invalid emergency contact number format'),
+      .matches(/^[0-9+\s-()]{10,}$/).withMessage('Invalid emergency contact number format'),
 
     body('employeeCode')
       .optional()
@@ -120,16 +119,16 @@ const validationRules = {
       .isLength({ max: 100 }).withMessage('Bank Name must be less than 100 characters'),
 
     body('reportingManagerId')
-    .optional()
-    .trim()
-    .isInt().withMessage('Invalid Reporting manager ID'),
+      .optional()
+      .trim()
+      .isInt().withMessage('Invalid Reporting manager ID'),
 
     // File validations
-    body('educationalDocuments.*')
+    body('educationalDocs.*')
       .optional()
       .custom((value, { req }) => {
-        if (req.files && req.files.educationalDocuments) {
-          for (const file of req.files.educationalDocuments) {
+        if (req.files && req.files.educationalDocs) {
+          for (const file of req.files.educationalDocs) {
             if (file.size > MAX_FILE_SIZE) {
               throw new Error('File size must not exceed 5MB');
             }
@@ -141,11 +140,11 @@ const validationRules = {
         return true;
       }),
 
-    body('professionalDocuments.*')
+    body('professionalDocs.*')
       .optional()
       .custom((value, { req }) => {
-        if (req.files && req.files.professionalDocuments) {
-          for (const file of req.files.professionalDocuments) {
+        if (req.files && req.files.professionalDocs) {
+          for (const file of req.files.professionalDocs) {
             if (file.size > MAX_FILE_SIZE) {
               throw new Error('File size must not exceed 5MB');
             }
@@ -157,11 +156,11 @@ const validationRules = {
         return true;
       }),
 
-    body('identityDocuments.*')
+    body('identityDocs.*')
       .optional()
       .custom((value, { req }) => {
-        if (req.files && req.files.identityDocuments) {
-          for (const file of req.files.identityDocuments) {
+        if (req.files && req.files.identityDocs) {
+          for (const file of req.files.identityDocs) {
             if (file.size > MAX_FILE_SIZE) {
               throw new Error('File size must not exceed 5MB');
             }
@@ -173,11 +172,11 @@ const validationRules = {
         return true;
       }),
 
-    body('addressDocuments.*')
+    body('addressDocs.*')
       .optional()
       .custom((value, { req }) => {
-        if (req.files && req.files.addressDocuments) {
-          for (const file of req.files.addressDocuments) {
+        if (req.files && req.files.addressDocs) {
+          for (const file of req.files.addressDocs) {
             if (file.size > MAX_FILE_SIZE) {
               throw new Error('File size must not exceed 5MB');
             }
@@ -189,11 +188,11 @@ const validationRules = {
         return true;
       }),
 
-    body('otherDocuments.*')
+    body('otherDocs.*')
       .optional()
       .custom((value, { req }) => {
-        if (req.files && req.files.otherDocuments) {
-          for (const file of req.files.otherDocuments) {
+        if (req.files && req.files.otherDocs) {
+          for (const file of req.files.otherDocs) {
             if (file.size > MAX_FILE_SIZE) {
               throw new Error('File size must not exceed 5MB');
             }
@@ -313,7 +312,16 @@ const validationRules = {
     body('bankName')
       .optional()
       .trim()
-      .isLength({ max: 100 }).withMessage('Bank Name must be less than 100 characters')
+      .isLength({ max: 100 }).withMessage('Bank Name must be less than 100 characters'),
+
+    body('emergencyName')
+      .optional()
+      .trim()
+      .isLength({ max: 50 }).withMessage('Emergency Contact Name must be less than 50 characters'),
+
+    body('emergencyContact')
+      .optional()
+      .matches(/^[0-9+\s-()]{10,}$/).withMessage('Invalid emergency contact number format')
   ],
 
   getEmployee: [

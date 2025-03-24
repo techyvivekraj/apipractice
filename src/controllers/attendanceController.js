@@ -3,40 +3,46 @@ import Attendance from '../models/attendance/Attendance.js';
 class AttendanceController {
   static async getAttendanceList(req, res) {
     try {
-      // Check if user has permission to view attendance
-      if (!['admin', 'view'].includes(req.user.role)) {
-        return res.status(403).json({
-          success: false,
-          statusCode: 403,
-          errors: [{
-            type: 'forbidden',
-            msg: 'Not authorized to view attendance records',
-            path: 'authorization',
-            location: 'header'
-          }]
-        });
-      }
-
-      const attendance = await Attendance.getAttendanceList({
-        ...req.query,
+      const filters = {
         organizationId: req.user.organizationId,
-        userId: req.user.id,
-        userRole: req.user.role
-      });
+        startDate: req.query.startDate,
+        endDate: req.query.endDate,
+        employeeId: req.query.employeeId,
+        departmentId: req.query.departmentId,
+        designationId: req.query.designationId,
+        employeeName: req.query.employeeName,
+        status: req.query.status,
+        page: parseInt(req.query.page) || 1,
+        limit: parseInt(req.query.limit) || 10
+      };
+
+      const result = await Attendance.getAttendanceList(filters);
 
       return res.status(200).json({
         success: true,
         statusCode: 200,
-        data: attendance
+        data: {
+          data: result.data,
+          pagination: result.pagination
+        }
       });
     } catch (error) {
       console.error('Get attendance list error:', error);
       return res.status(500).json({
         success: false,
         statusCode: 500,
+        data: {
+          data: [],
+          pagination: {
+            total: 0,
+            page: 1,
+            limit: 10,
+            totalPages: 0
+          }
+        },
         errors: [{
           type: 'server',
-          msg: 'Failed to fetch attendance',
+          msg: 'Failed to fetch attendance records',
           path: 'server',
           location: 'internal'
         }]
@@ -44,57 +50,32 @@ class AttendanceController {
     }
   }
 
-  static async markAttendance(req, res) {
+  static async markCheckIn(req, res) {
     try {
-      const {
-        date,
-        checkInTime,
-        checkInLocation,
-        checkInPhoto
-      } = req.body;
-
-      // Check for existing attendance
-      const existing = await Attendance.checkExistingAttendance(
-        req.user.employeeId,
-        date
-      );
-
-      if (existing) {
-        return res.status(400).json({
-          success: false,
-          statusCode: 400,
-          errors: [{
-            type: 'validation',
-            msg: 'Attendance already marked for this date',
-            path: 'date',
-            location: 'body'
-          }]
-        });
-      }
-
-      const attendanceId = await Attendance.markAttendance({
+      const attendance = await Attendance.markCheckIn({
         organizationId: req.user.organizationId,
-        employeeId: req.user.employeeId,
-        date,
-        checkInTime,
-        checkInLocation,
-        checkInPhoto
+        employeeId: req.body.employeeId,
+        shiftId: req.body.shiftId,
+        date: req.body.date,
+        checkInTime: req.body.checkInTime,
+        checkInLocation: req.body.checkInLocation,
+        checkInPhoto: req.body.checkInPhoto
       });
 
       return res.status(201).json({
         success: true,
         statusCode: 201,
-        message: 'Attendance marked successfully',
-        data: { id: attendanceId }
+        message: 'Check-in marked successfully',
+        data: attendance
       });
     } catch (error) {
-      console.error('Mark attendance error:', error);
+      console.error('Mark check-in error:', error);
       return res.status(500).json({
         success: false,
         statusCode: 500,
         errors: [{
           type: 'server',
-          msg: error.message || 'Failed to mark attendance',
+          msg: error.message || 'Failed to mark check-in',
           path: 'server',
           location: 'internal'
         }]
@@ -104,33 +85,18 @@ class AttendanceController {
 
   static async markCheckOut(req, res) {
     try {
-      const { id } = req.params;
-      const { checkOutTime, checkOutLocation, checkOutPhoto } = req.body;
-
-      const updated = await Attendance.markCheckOut({
-        id,
-        checkOutTime,
-        checkOutLocation,
-        checkOutPhoto
+      const attendance = await Attendance.markCheckOut({
+        id: req.params.id,
+        checkOutTime: req.body.checkOutTime,
+        checkOutLocation: req.body.checkOutLocation,
+        checkOutPhoto: req.body.checkOutPhoto
       });
-
-      if (!updated) {
-        return res.status(404).json({
-          success: false,
-          statusCode: 404,
-          errors: [{
-            type: 'notFound',
-            msg: 'Attendance record not found',
-            path: 'id',
-            location: 'params'
-          }]
-        });
-      }
 
       return res.status(200).json({
         success: true,
         statusCode: 200,
-        message: 'Check-out marked successfully'
+        message: 'Check-out marked successfully',
+        data: attendance
       });
     } catch (error) {
       console.error('Mark check-out error:', error);
@@ -139,7 +105,7 @@ class AttendanceController {
         statusCode: 500,
         errors: [{
           type: 'server',
-          msg: 'Failed to mark check-out',
+          msg: error.message || 'Failed to mark check-out',
           path: 'server',
           location: 'internal'
         }]
@@ -149,40 +115,18 @@ class AttendanceController {
 
   static async updateApprovalStatus(req, res) {
     try {
-      const { id } = req.params;
-      const { status, rejectionReason } = req.body;
-
-      // Check if user can approve this attendance
-      const canApprove = await Attendance.canApproveAttendance(
-        id,
-        req.user.id,
-        req.user.role
-      );
-
-      if (!canApprove) {
-        return res.status(403).json({
-          success: false,
-          statusCode: 403,
-          errors: [{
-            type: 'forbidden',
-            msg: 'Not authorized to approve/reject this attendance',
-            path: 'authorization',
-            location: 'header'
-          }]
-        });
-      }
-
-      const updated = await Attendance.updateApprovalStatus({
-        id,
-        status,
+      const attendance = await Attendance.updateApprovalStatus({
+        id: req.params.id,
+        status: req.body.status,
         approvedBy: req.user.id,
-        rejectionReason
+        rejectionReason: req.body.rejectionReason
       });
 
       return res.status(200).json({
         success: true,
         statusCode: 200,
-        message: `Attendance ${status} successfully`
+        message: `Attendance ${req.body.status} successfully`,
+        data: attendance
       });
     } catch (error) {
       console.error('Update approval status error:', error);
@@ -191,7 +135,7 @@ class AttendanceController {
         statusCode: 500,
         errors: [{
           type: 'server',
-          msg: 'Failed to update approval status',
+          msg: error.message || 'Failed to update approval status',
           path: 'server',
           location: 'internal'
         }]

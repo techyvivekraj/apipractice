@@ -16,22 +16,22 @@ class EmployeeController {
 
       // Extract employee data from request body
       const {
-        firstName, lastName, phone, email, joiningDate, departmentId, 
+        firstName, lastName, phone, email, joinigDate, departmentId, 
         designationId, shiftId, salaryType, salary,
         middleName, employeeCode, address, country, state, city,
         postalCode, dateOfBirth, gender, bloodGroup,
-        emergencyContact: emergencyContactPhone, emergencyName: emergencyContactName,
+        emergencyContact, emergencyName,
         reportingManagerId, bankAccountNumber, bankIfsc,
         bankName, organizationId
       } = req.body;
 
-      // Create employee record
+      // Create employee record - use snake_case keys to match the model
       const employeeId = await Employee.create({
         firstName,
         lastName,
         phone,
         email,
-        joiningDate,
+        joinigDate,
         departmentId,
         designationId,
         shiftId,
@@ -46,8 +46,8 @@ class EmployeeController {
         dateOfBirth,
         gender,
         bloodGroup,
-        emergencyContactPhone,
-        emergencyContactName,
+        emergencyContact,
+        emergencyName,
         reportingManagerId,
         bankAccountNumber,
         bankIfsc,
@@ -55,34 +55,34 @@ class EmployeeController {
         organizationId
       });
 
-      // Handle document uploads if any
+      // Handle document uploads with updated keys
       if (req.files) {
         const documents = {
-          educationalDocuments: req.files['educationalDocs']?.map(file => ({
+          educationalDocs: req.files['educationalDocs']?.map(file => ({
             fileName: file.filename,
             filePath: file.path,
             fileSize: file.size,
             mimeType: file.mimetype
           })) || [],
-          professionalDocuments: req.files['professionalDocs']?.map(file => ({
+          professionalDocs: req.files['professionalDocs']?.map(file => ({
             fileName: file.filename,
             filePath: file.path,
             fileSize: file.size,
             mimeType: file.mimetype
           })) || [],
-          identityDocuments: req.files['identityDocs']?.map(file => ({
+          identityDocs: req.files['identityDocs']?.map(file => ({
             fileName: file.filename,
             filePath: file.path,
             fileSize: file.size,
             mimeType: file.mimetype
           })) || [],
-          addressDocuments: req.files['addressDocs']?.map(file => ({
+          addressDocs: req.files['addressDocs']?.map(file => ({
             fileName: file.filename,
             filePath: file.path,
             fileSize: file.size,
             mimeType: file.mimetype
           })) || [],
-          otherDocuments: req.files['otherDocs']?.map(file => ({
+          otherDocs: req.files['otherDocs']?.map(file => ({
             fileName: file.filename,
             filePath: file.path,
             fileSize: file.size,

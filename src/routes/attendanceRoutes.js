@@ -6,32 +6,32 @@ import attendanceValidationRules from '../utils/validations/attendanceValidation
 
 const router = express.Router();
 
-// Get attendance list (Admin, View role, and Reporting Managers)
+// Get attendance list
 router.get('/attendance',
-  authMiddleware,
-  validate(attendanceValidationRules.getAttendanceList),
-  AttendanceController.getAttendanceList
+    authMiddleware,
+    validate(attendanceValidationRules.getAttendanceList),
+    AttendanceController.getAttendanceList
 );
 
-// Mark attendance (check-in)
+// Mark check-in
 router.post('/attendance/check-in',
-  authMiddleware,
-  validate(attendanceValidationRules.markAttendance),
-  AttendanceController.markAttendance
+    authMiddleware,
+    validate(attendanceValidationRules.markCheckIn),
+    AttendanceController.markCheckIn
 );
 
 // Mark check-out
 router.post('/attendance/:id/check-out',
-  authMiddleware,
-  validate(attendanceValidationRules.markCheckOut),
-  AttendanceController.markCheckOut
+    authMiddleware,
+    validate(attendanceValidationRules.markCheckOut),
+    AttendanceController.markCheckOut
 );
 
-// Update approval status (Admin and Reporting Managers only)
+// Update approval status
 router.put('/attendance/:id/approval',
-  authMiddleware,
-  validate(attendanceValidationRules.updateApproval),
-  AttendanceController.updateApprovalStatus
+    authMiddleware,
+    validate(attendanceValidationRules.updateApprovalStatus),
+    AttendanceController.updateApprovalStatus
 );
 
 export default router; 

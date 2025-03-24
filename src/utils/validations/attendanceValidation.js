@@ -14,15 +14,19 @@ const attendanceValidationRules = {
       .optional()
       .isInt().withMessage('Invalid employee ID'),
     
-    query('status')
+    query('departmentId')
       .optional()
-      .isIn(['present', 'absent', 'half-day', 'late', 'leave'])
-      .withMessage('Invalid status'),
+      .isInt().withMessage('Invalid department ID'),
     
-    query('approvalStatus')
+    query('designationId')
       .optional()
-      .isIn(['pending', 'approved', 'rejected'])
-      .withMessage('Invalid approval status'),
+      .isInt().withMessage('Invalid designation ID'),
+    
+    query('employeeName')
+      .optional(),
+    
+    query('status')
+      .optional(),
     
     query('page')
       .optional()
@@ -33,47 +37,36 @@ const attendanceValidationRules = {
       .isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100')
   ],
 
-  markAttendance: [
+  markCheckIn: [
+    body('employeeId')
+      .notEmpty().withMessage('Employee ID is required')
+      .isInt().withMessage('Invalid employee ID'),
+    
+    body('shiftId')
+      .notEmpty().withMessage('Shift ID is required')
+      .isInt().withMessage('Invalid shift ID'),
+    
     body('date')
       .notEmpty().withMessage('Date is required')
-      .isISO8601().withMessage('Invalid date format')
-      .custom((value) => {
-        const date = new Date(value);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        if (date > today) {
-          throw new Error('Cannot mark attendance for future dates');
-        }
-        return true;
-      }),
-
+      .isISO8601().withMessage('Invalid date format'),
+    
     body('checkInTime')
       .notEmpty().withMessage('Check-in time is required')
       .isISO8601().withMessage('Invalid datetime format'),
-
+    
     body('checkInLocation')
-      .notEmpty().withMessage('Location is required')
+      .notEmpty().withMessage('Check-in location is required')
       .isObject().withMessage('Invalid location format')
       .custom((value) => {
         if (!value.latitude || !value.longitude) {
           throw new Error('Location must include latitude and longitude');
         }
-        if (typeof value.latitude !== 'number' || typeof value.longitude !== 'number') {
-          throw new Error('Latitude and longitude must be numbers');
-        }
-        if (value.latitude < -90 || value.latitude > 90) {
-          throw new Error('Invalid latitude value');
-        }
-        if (value.longitude < -180 || value.longitude > 180) {
-          throw new Error('Invalid longitude value');
-        }
         return true;
       }),
-
+    
     body('checkInPhoto')
-      .notEmpty().withMessage('Photo is required')
-      .isURL().withMessage('Invalid photo URL')
+      .notEmpty().withMessage('Check-in photo is required')
+      .isString().withMessage('Invalid photo path')
   ],
 
   markCheckOut: [
@@ -82,42 +75,24 @@ const attendanceValidationRules = {
     
     body('checkOutTime')
       .notEmpty().withMessage('Check-out time is required')
-      .isISO8601().withMessage('Invalid datetime format')
-      .custom((value, { req }) => {
-        const checkOut = new Date(value);
-        const today = new Date();
-        
-        if (checkOut > today) {
-          throw new Error('Cannot mark check-out for future time');
-        }
-        return true;
-      }),
-
+      .isISO8601().withMessage('Invalid datetime format'),
+    
     body('checkOutLocation')
-      .notEmpty().withMessage('Location is required')
+      .notEmpty().withMessage('Check-out location is required')
       .isObject().withMessage('Invalid location format')
       .custom((value) => {
         if (!value.latitude || !value.longitude) {
           throw new Error('Location must include latitude and longitude');
         }
-        if (typeof value.latitude !== 'number' || typeof value.longitude !== 'number') {
-          throw new Error('Latitude and longitude must be numbers');
-        }
-        if (value.latitude < -90 || value.latitude > 90) {
-          throw new Error('Invalid latitude value');
-        }
-        if (value.longitude < -180 || value.longitude > 180) {
-          throw new Error('Invalid longitude value');
-        }
         return true;
       }),
-
+    
     body('checkOutPhoto')
-      .notEmpty().withMessage('Photo is required')
-      .isURL().withMessage('Invalid photo URL')
+      .notEmpty().withMessage('Check-out photo is required')
+      .isString().withMessage('Invalid photo path')
   ],
 
-  updateApproval: [
+  updateApprovalStatus: [
     param('id')
       .isInt().withMessage('Invalid attendance ID'),
     
@@ -129,8 +104,9 @@ const attendanceValidationRules = {
     body('rejectionReason')
       .if(body('status').equals('rejected'))
       .notEmpty().withMessage('Rejection reason is required when rejecting attendance')
-      .isLength({ min: 10, max: 500 })
-      .withMessage('Rejection reason must be between 10 and 500 characters')
+      .isString().withMessage('Invalid rejection reason')
+      .isLength({ max: 500 })
+      .withMessage('Rejection reason must not exceed 500 characters')
   ]
 };
 
