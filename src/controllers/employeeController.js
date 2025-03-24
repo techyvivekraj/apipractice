@@ -16,7 +16,7 @@ class EmployeeController {
 
       // Extract employee data from request body
       const {
-        firstName, lastName, phone, email, joinigDate, departmentId, 
+        firstName, lastName, phone, email, joiningDate, departmentId, 
         designationId, shiftId, salaryType, salary,
         middleName, employeeCode, address, country, state, city,
         postalCode, dateOfBirth, gender, bloodGroup,
@@ -31,7 +31,7 @@ class EmployeeController {
         lastName,
         phone,
         email,
-        joinigDate,
+        joiningDate,
         departmentId,
         designationId,
         shiftId,
