@@ -55,6 +55,9 @@ class EmployeeController {
         organizationId
       });
 
+      // Get the complete employee data
+      const employeeData = await Employee.findById(employeeId, organizationId);
+
       // Handle document uploads with updated keys
       if (req.files) {
         const documents = {
@@ -97,7 +100,7 @@ class EmployeeController {
         success: true,
         statusCode: 201,
         message: 'Employee added successfully',
-        data: { employeeId }
+        data: employeeData
       });
     } catch (error) {
       console.error('Add Employee Error:', error);
