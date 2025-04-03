@@ -45,7 +45,6 @@ CREATE TABLE designations (
 );
 
 -- Employee Table (HR Employee Records)
-
 CREATE TABLE employees (
     id INT PRIMARY KEY AUTO_INCREMENT,
     organization_id INT NOT NULL,
@@ -57,33 +56,32 @@ CREATE TABLE employees (
     phone VARCHAR(20) NOT NULL,
     emergency_contact_name VARCHAR(100),  -- Optional
     emergency_contact_phone VARCHAR(20),  -- Optional
-    date_of_birth VARCHAR(50),                  -- Made optional
-    gender ENUM('male', 'female', 'other'), -- Made optional
+    date_of_birth VARCHAR(50),                  -- Optional
+    gender ENUM('male', 'female', 'other'), -- Optional
     blood_group VARCHAR(5),              -- Optional
     address TEXT,                        -- Optional
     city VARCHAR(50),                    -- Optional
     state VARCHAR(50),                   -- Optional
     country VARCHAR(50),                 -- Optional
     postal_code VARCHAR(20),             -- Optional
-    department_id INT NOT NULL,          -- Required
-    designation_id INT NOT NULL,         -- Required
-    shift_id INT NOT NULL,               -- Required
+    department_id INT NULL,          -- ✅ Made Optional
+    designation_id INT NULL,         -- ✅ Made Optional
+    shift_id JSON NULL,               -- ✅ Made Optional
     joining_date VARCHAR(50) NOT NULL,          -- Required
     salary_type ENUM('monthly', 'daily', 'hourly') NOT NULL,
     salary DECIMAL(10,2) NOT NULL DEFAULT 0.00, -- Required
-    bank_account_number VARCHAR(100),    -- Made optional
-    bank_ifsc_code VARCHAR(20),          -- Made optional
-    bank_name VARCHAR(20),          -- Made optional
+    bank_account_number VARCHAR(100),    -- Optional
+    bank_ifsc_code VARCHAR(20),          -- Optional
+    bank_name VARCHAR(20),          -- Optional
     reporting_manager_id INT,            -- Optional
     status ENUM('active', 'inactive') DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (organization_id) REFERENCES organizations(id),
-    FOREIGN KEY (department_id) REFERENCES departments(id),
-    FOREIGN KEY (designation_id) REFERENCES designations(id),
-    FOREIGN KEY (shift_id) REFERENCES shifts(id),
-    FOREIGN KEY (reporting_manager_id) REFERENCES employees(id),
-    UNIQUE KEY unique_emp_code (organization_id, employee_code)  -- Make employee_code unique per organization
+    FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE SET NULL,  -- ✅ Allows NULL
+    FOREIGN KEY (designation_id) REFERENCES designations(id) ON DELETE SET NULL, -- ✅ Allows NULL
+    FOREIGN KEY (reporting_manager_id) REFERENCES employees(id) ON DELETE SET NULL, -- Optional
+    UNIQUE KEY unique_emp_code (organization_id, employee_code)  -- Unique per organization
 );
 
 -- Employee Documents Table
@@ -146,28 +144,28 @@ CREATE TABLE shifts (
 );
 
 -- Employee Shift Assignments
-CREATE TABLE employee_shifts (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    organization_id INT NOT NULL,
-    employee_id INT NOT NULL,
-    shift_id INT NOT NULL,
-    start_date DATE NOT NULL,    -- When this shift starts
-    end_date DATE,              -- When this shift ends (NULL for indefinite)
-    is_primary BOOLEAN DEFAULT false, -- To mark primary shift
-    status ENUM('active', 'inactive') DEFAULT 'active',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (organization_id) REFERENCES organizations(id),
-    FOREIGN KEY (employee_id) REFERENCES employees(id),
-    FOREIGN KEY (shift_id) REFERENCES shifts(id)
-);
+-- CREATE TABLE employee_shifts (
+--     id INT PRIMARY KEY AUTO_INCREMENT,
+--     organization_id INT NOT NULL,
+--     employee_id INT NOT NULL,
+--     shift_id INT NOT NULL,
+--     start_date DATE NOT NULL,    -- When this shift starts
+--     end_date DATE,              -- When this shift ends (NULL for indefinite)
+--     is_primary BOOLEAN DEFAULT false, -- To mark primary shift
+--     status ENUM('active', 'inactive') DEFAULT 'active',
+--     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+--     FOREIGN KEY (organization_id) REFERENCES organizations(id),
+--     FOREIGN KEY (employee_id) REFERENCES employees(id),
+--     FOREIGN KEY (shift_id) REFERENCES shifts(id)
+-- );
 
 -- Attendance Table
 CREATE TABLE attendance (
     id INT PRIMARY KEY AUTO_INCREMENT,
     organization_id INT NOT NULL,
     employee_id INT NOT NULL,
-    shift_id INT NOT NULL,         -- Reference to the shift for this attendance
+    shift_id INT NULL,         -- Reference to the shift for this attendance
     date DATE NOT NULL,
     check_in DATETIME,
     check_out DATETIME,

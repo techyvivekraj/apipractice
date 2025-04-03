@@ -27,15 +27,15 @@ const validationRules = {
       .isISO8601().withMessage('Invalid date format'),
 
     body('departmentId')
-      .notEmpty().withMessage('Department is required')
+    .optional().trim()
       .isInt().withMessage('Invalid Department ID'),
 
     body('designationId')
-      .notEmpty().withMessage('Designation is required')
+    .optional().trim()
       .isInt().withMessage('Invalid Designation ID'),
 
     body('shiftId')
-      .notEmpty().withMessage('Shift is required')
+    .optional().trim()
       .isInt().withMessage('Invalid Shift ID'),
 
     body('salaryType')

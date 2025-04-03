@@ -2,40 +2,43 @@ import pool from '../../config/db.js';
 import convertToCamelCase from '../../utils/convertToCamelCase.js';
 class Employee {
   static async create({
-    firstName, middleName, lastName, phone, email, joiningDate, departmentId, 
-    designationId, shiftId, salaryType, salary, employeeCode, address, country, 
-    state, postalCode, dateOfBirth, gender, bloodGroup, bankAccountNumber, 
-    bankIfsc, bankName, reportingManagerId, organizationId, 
+    firstName, middleName, lastName, phone, email, joiningDate, departmentId,
+    designationId, shiftId, salaryType, salary, employeeCode, address, city, country,
+    state, postalCode, dateOfBirth, gender, bloodGroup, bankAccountNumber,
+    bankIfsc, bankName, reportingManagerId, organizationId,
     emergencyContact, emergencyName
   }) {
     try {
       const [result] = await pool.query(
         `INSERT INTO employees ( 
-          first_name, middle_name, last_name, phone, email, joining_date, 
-          department_id, designation_id, shift_id, salary_type, salary, 
-          employee_code, address, country, state, postal_code, date_of_birth, 
-          gender, blood_group, bank_account_number, bank_ifsc_code, bank_name, 
-          reporting_manager_id, organization_id, 
-          emergency_contact_phone, emergency_contact_name
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          organization_id, employee_code, first_name, middle_name, last_name, phone, email, 
+          emergency_contact_name, emergency_contact_phone, date_of_birth, gender, blood_group, 
+          address, city, state, country, postal_code, department_id, designation_id, shift_id, 
+          joining_date, salary_type, salary, bank_account_number, bank_ifsc_code, bank_name, 
+          reporting_manager_id, status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          firstName, middleName, lastName, phone, email, joiningDate, 
-          departmentId, designationId, shiftId, salaryType, salary, 
-          employeeCode, address, country, state, postalCode, dateOfBirth, 
-          gender, bloodGroup, bankAccountNumber, bankIfsc, bankName, 
-          reportingManagerId, organizationId, 
-          emergencyContact, emergencyName
+          organizationId, employeeCode, firstName, middleName, lastName, phone, email,
+          emergencyName, emergencyContact, dateOfBirth, gender, bloodGroup,
+          address, city, state, country, postalCode, departmentId, designationId, shiftId,
+          joiningDate, salaryType, salary, bankAccountNumber, bankIfsc, bankName,
+          reportingManagerId, 'active'
         ]
       );
+
       return result.insertId;
     } catch (error) {
-      if (error.code === 'ER_DUP_ENTRY' && error.sqlMessage.includes('email')) {
-        throw new Error('Email already exists');
+      if (error.code === 'ER_DUP_ENTRY') {
+        if (error.sqlMessage.includes('email')) {
+          throw new Error('Email already exists');
+        } else if (error.sqlMessage.includes('employee_code')) {
+          throw new Error('Employee Code already exists');
+        }
       }
       throw error;
     }
   }
-  
+
   static async addDocuments(employeeId, documents) {
     const allDocuments = [
       ...(documents.educationalDocs || []).map(doc => [
@@ -54,7 +57,7 @@ class Employee {
         employeeId, 'others', doc.fileName, doc.filePath, doc.fileSize, doc.mimeType
       ])
     ];
-  
+
     if (allDocuments.length > 0) {
       await pool.query(
         `INSERT INTO employee_documents ( 
@@ -66,9 +69,9 @@ class Employee {
     }
   }
 
-static async findById(employeeId, organizationId) {
-  const [rows] = await pool.query(
-    `SELECT 
+  static async findById(employeeId, organizationId) {
+    const [rows] = await pool.query(
+      `SELECT 
       e.id,
       e.first_name,
       e.middle_name,
@@ -106,26 +109,26 @@ static async findById(employeeId, organizationId) {
     LEFT JOIN designations ds ON e.designation_id = ds.id
     LEFT JOIN shifts s ON e.shift_id = s.id
     WHERE e.id = ? AND e.organization_id = ?`,
-    [employeeId, organizationId]
-  );
+      [employeeId, organizationId]
+    );
 
-  if (rows[0]) {
-    // Convert keys to camelCase using Object.entries() and reduce()
-    const formattedResult = Object.entries(rows[0]).reduce((acc, [key, value]) => {
-      acc[convertToCamelCase(key)] = value;
-      return acc;
-    }, {});
+    if (rows[0]) {
+      // Convert keys to camelCase using Object.entries() and reduce()
+      const formattedResult = Object.entries(rows[0]).reduce((acc, [key, value]) => {
+        acc[convertToCamelCase(key)] = value;
+        return acc;
+      }, {});
 
-    return formattedResult;
+      return formattedResult;
+    }
+
+    return null;
   }
 
-  return null;
-}
-
-static async findByOrganization(organizationId, page = 1, limit = 10) {
-  const offset = (page - 1) * limit;
-  const [rows] = await pool.query(
-    `SELECT 
+  static async findByOrganization(organizationId, page = 1, limit = 10) {
+    const offset = (page - 1) * limit;
+    const [rows] = await pool.query(
+      `SELECT 
       e.id,
       e.first_name,
       e.middle_name,
@@ -164,17 +167,17 @@ static async findByOrganization(organizationId, page = 1, limit = 10) {
     LEFT JOIN shifts s ON e.shift_id = s.id
     WHERE e.organization_id = ?
     LIMIT ? OFFSET ?`,
-    [organizationId, limit, offset]
-  );
+      [organizationId, limit, offset]
+    );
 
-  // Convert each row's keys to camelCase using map and reduce
-  return rows.map(row => 
-    Object.entries(row).reduce((acc, [key, value]) => {
-      acc[convertToCamelCase(key)] = value;
-      return acc;
-    }, {})
-  );
-}
+    // Convert each row's keys to camelCase using map and reduce
+    return rows.map(row =>
+      Object.entries(row).reduce((acc, [key, value]) => {
+        acc[convertToCamelCase(key)] = value;
+        return acc;
+      }, {})
+    );
+  }
 
   static async getDocuments(employeeId) {
     const [rows] = await pool.query(
@@ -212,7 +215,7 @@ static async findByOrganization(organizationId, page = 1, limit = 10) {
       emergency_contact_phone: updateData.emergencyContact,
       emergency_contact_name: updateData.emergencyName
     };
-  
+
     const [result] = await pool.query(
       `UPDATE employees 
        SET first_name = ?, middle_name = ?, last_name = ?, phone = ?, 
@@ -237,10 +240,9 @@ static async findByOrganization(organizationId, page = 1, limit = 10) {
         employeeId, organizationId
       ]
     );
-  
+
     return result.affectedRows > 0;
   }
-  
 
   static async delete(employeeId, organizationId) {
     const [result] = await pool.query(
