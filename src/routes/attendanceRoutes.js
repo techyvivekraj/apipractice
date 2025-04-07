@@ -13,25 +13,5 @@ router.get('/attendance',
     AttendanceController.getAttendanceList
 );
 
-// Mark check-in
-router.post('/attendance/check-in',
-    authMiddleware,
-    validate(attendanceValidationRules.markCheckIn),
-    AttendanceController.markCheckIn
-);
-
-// Mark check-out
-router.post('/attendance/:id/check-out',
-    authMiddleware,
-    validate(attendanceValidationRules.markCheckOut),
-    AttendanceController.markCheckOut
-);
-
-// Update approval status
-router.put('/attendance/:id/approval',
-    authMiddleware,
-    validate(attendanceValidationRules.updateApprovalStatus),
-    AttendanceController.updateApprovalStatus
-);
 
 export default router; 
